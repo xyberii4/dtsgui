@@ -93,13 +93,17 @@ class SilixaImporter(Importer):
         mnemonic_list_str = log_data.find(
             'default:mnemonicList', self._xml_namespace).text
         mnemonic_list = mnemonic_list_str.split(',')
+        length_index = mnemonic_list.index('LAF')  # length along fiber
         temperature_index = mnemonic_list.index('TMP')
 
         temperatures = []
 
         for data in log_data.findall('default:data', self._xml_namespace):
-            temp = float(data.text.strip().split(',')[temperature_index])
-            temperatures.append(temp)
+            data_list = data.text.strip().split(',')
+            laf = float(data_list[length_index])
+            if laf >= 0:
+                temp = float(data_list[temperature_index])
+                temperatures.append(temp)
 
         temperatures = np.array(temperatures, dtype=np.float32)
 
