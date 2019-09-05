@@ -32,6 +32,12 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
         except:
             pass
 
+        try:
+            with open('apikey', 'r') as f:
+                self.apikey = f.readline()
+        except:
+            self.apikey = ''
+
         log.info("Initializing {}".format(self.__class__.__name__))
 
         self.setupData()
@@ -59,7 +65,9 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
     def set_up_display(self):
 
         from html import html
-        self.LoadFileString(html, self._createMarkersJSON())
+
+        map_html = html.format('?key={}'.format(self.apikey))
+        self.LoadFileString(map_html, self._createMarkersJSON())
 
         sizer = self.GetSizer()
 
@@ -96,7 +104,8 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
         window.Unbind(evt.EVT_COLORMAP_ADJUSTED, handler=self.update_colors)
         window.Unbind(evt.EVT_OFFSET_SET, handler=self._onOffsetSet)
         window.Unbind(evt.EVT_TOOLTIP_MOVED, handler=self._onTooltipMoved)
-        window.Unbind(evt.EVT_TOOLTIP_MOVED, handler=self.update_current_subset)
+        window.Unbind(evt.EVT_TOOLTIP_MOVED,
+                      handler=self.update_current_subset)
 
     def on_move_tooltip(self, event):
         event.Skip()
@@ -130,7 +139,8 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
         if event.t_loc is not None:
             self.t_loc = t_loc
         event.Skip()
-        log.debug("Tooltip moved in {} showing {}".format(self.__class__.__name__, self.ch.get_title()))
+        log.debug("Tooltip moved in {} showing {}".format(
+            self.__class__.__name__, self.ch.get_title()))
 
     def __draw_selected_point(self, x_loc):
         log.debug("Drawing point at location {}".format(x_loc))
@@ -142,7 +152,8 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
     def _createPolylineScript(self):
         script = "var Coordinates = ["
         for item in self.geodata.raw:
-            script += "new google.maps.LatLng({}, {}),".format(item[1], item[2])
+            script += "new google.maps.LatLng({}, {}),".format(
+                item[1], item[2])
 
         script += "];"
         script += """
@@ -174,7 +185,8 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
         return "var json = '{}'".format(json.dumps(ls))
 
     def create_markers(self, locations=None):
-        self.RunScript("createMarkers("+self._createMarkersJSON(locations)+");")
+        self.RunScript(
+            "createMarkers("+self._createMarkersJSON(locations)+");")
 
     def update_current_subset(self, event=None):
         """
@@ -187,7 +199,8 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
             return
 
         current_subset_title = event.dataset.get_title()
-        self.current_channel_static_text.SetLabel("Viewing subset {}".format(current_subset_title))
+        self.current_channel_static_text.SetLabel(
+            "Viewing subset {}".format(current_subset_title))
         event.Skip()
 
     def update_colors(self, event=None):
@@ -196,14 +209,19 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
                 self.temp_extents = event.temp_extents
             if hasattr(event, "space_series"):
                 if self._space_series_values == 'mean':
-                    self.space_series = np.nanmean(event.dataset.get_array(), axis=0)
+                    self.space_series = np.nanmean(
+                        event.dataset.get_array(), axis=0)
                 elif self._space_series_values == 'std':
-                    self.space_series = np.nanstd(event.dataset.get_array(), axis=0)
-                    self.temp_extents = (np.nanmin(self.space_series), np.nanmax(self.space_series))
+                    self.space_series = np.nanstd(
+                        event.dataset.get_array(), axis=0)
+                    self.temp_extents = (
+                        np.nanmin(self.space_series), np.nanmax(self.space_series))
                 elif self._space_series_values == 'max':
-                    self.space_series = np.nanmax(event.dataset.get_array(), axis=0)
+                    self.space_series = np.nanmax(
+                        event.dataset.get_array(), axis=0)
                 elif self._space_series_values == 'min':
-                    self.space_series = np.nanmin(event.dataset.get_array(), axis=0)
+                    self.space_series = np.nanmin(
+                        event.dataset.get_array(), axis=0)
                 else:
                     self.space_series = event.space_series
             if hasattr(event, "dataset"):
@@ -213,13 +231,16 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
             cmap = window.colors.get_colormap()
             temp_extents = window.colors.get_temp_extents()
             if temp_extents is None:
-                temp_extents = np.nanmin(self.space_series), np.nanmax(self.space_series)
+                temp_extents = np.nanmin(
+                    self.space_series), np.nanmax(self.space_series)
             if hasattr(event, "cmap"):
                 cmap = event.cmap
-            colors = self.get_marker_colors(temp_extents, self.space_series, cmap)
+            colors = self.get_marker_colors(
+                temp_extents, self.space_series, cmap)
             script = self._get_color_script(colors)
             self.RunScript(script)
-            log.debug("Colors updated in {} showing {}".format(self.__class__.__name__, self.ch.get_title()))
+            log.debug("Colors updated in {} showing {}".format(
+                self.__class__.__name__, self.ch.get_title()))
 
         if event:
             event.Skip()
@@ -237,7 +258,8 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
             except:
                 color = GRAY
             if item[1] != -200:
-                script += "window.markers[{}].div_.style.backgroundColor = '{}';".format(i, color)
+                script += "window.markers[{}].div_.style.backgroundColor = '{}';".format(
+                    i, color)
 
         return script
 
@@ -305,7 +327,8 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
             elif string_selection == 'Std':
                 self._space_series_values = 'std'
 
-            log.debug('Space series values updated to {}'.format(string_selection))
+            log.debug('Space series values updated to {}'.format(
+                string_selection))
 
             self.update_colors(self._last_tooltip_move_event)
 
@@ -318,7 +341,8 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
         """
 
         wildcard = 'BMP files (*.bmp)|*.bmp|PNG files (*.png)|*.png'
-        path = dts.ui.dialog.file_io.save_file("Save current view as image file", wildcard)
+        path = dts.ui.dialog.file_io.save_file(
+            "Save current view as image file", wildcard)
 
         if path:
 
@@ -386,13 +410,15 @@ class StatsGoogleMapControl(GoogleMapControl):
         for channel_id in window.data.get_channels():
             ch = window.data.channels[channel_id]
             if not ch.geodata.loaded:
-                log.error("Cannot initialize " + self.__class__.__name__ + ": geospatial data not available.")
+                log.error("Cannot initialize " + self.__class__.__name__ +
+                          ": geospatial data not available.")
                 self.Delete()
                 self.Destroy()
             if geodata_interp is None:
                 geodata_interp = ch.geodata.interp
             else:
-                geodata_interp = np.append(geodata_interp, ch.geodata.interp, axis=0)
+                geodata_interp = np.append(
+                    geodata_interp, ch.geodata.interp, axis=0)
 
         self.geodata_interp = geodata_interp
 
@@ -423,7 +449,8 @@ class StatsGoogleMapControl(GoogleMapControl):
         temp_extents = window.colors.get_temp_extents()
 
         if self._space_series_values == 'std' or temp_extents is None:
-            temp_extents = (np.min(self.space_series), np.max(self.space_series))
+            temp_extents = (np.min(self.space_series),
+                            np.max(self.space_series))
         if hasattr(event, "cmap"):
             cmap = event.cmap
         else:
