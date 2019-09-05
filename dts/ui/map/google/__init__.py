@@ -1,4 +1,5 @@
 import os
+import sys
 
 import numpy as np
 
@@ -32,8 +33,14 @@ class GoogleMapControl(CPL_WebControl, MapControlBase):
         except:
             pass
 
+        if getattr(sys, 'frozen', False):
+            apikey_dir = os.path.dirname(sys.executable)
+        else:
+            package_dir = os.path.dirname(dts.__file__)
+            apikey_dir = os.path.dirname(package_dir)
+
         try:
-            with open('apikey', 'r') as f:
+            with open(os.path.join(apikey_dir, 'apikey'), 'r') as f:
                 self.apikey = f.readline()
         except:
             self.apikey = ''
