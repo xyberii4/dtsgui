@@ -130,6 +130,19 @@ buttons in the channel 1 editor tab will be enabled. See the below figure.
 
 ## 7. View the channel data on Google Maps
 
+**In order to correctly view the Google Maps feature, you must have a Google
+Maps JavaScript API key.** The API key must be contained in a file named
+`apikey` in the same directory as
+
+* The DTSGUI executable if you're running the packaged version (`DTSGUI.exe`)
+or
+* The DTSGUI package if you're running the program through a Python
+interpreter (not *in* the package directory, but on the same level as the
+package).
+
+Email [mdomanski@usgs.gov](mailto:mdomanski@usgs.gov) to request an API key if
+you don't have access to one.
+
 To view the georeferenced temperature data, click the Google Maps Viewer
 button in the channel 1 editor tab. A new tab named Google Maps: Channel 1 will
 appear in the main window (as shown in the figure below).
