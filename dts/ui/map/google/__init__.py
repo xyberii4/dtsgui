@@ -432,7 +432,9 @@ class StatsGoogleMapControl(GoogleMapControl):
     def set_up_display(self):
 
         from html import html
-        self.LoadFileString(html, self._createMarkersJSON(self.geodata_interp))
+        map_html = html.format('?key={}'.format(self.apikey))
+        self.LoadFileString(
+            map_html, self._createMarkersJSON(self.geodata_interp))
 
         sizer = self.GetSizer()
 
