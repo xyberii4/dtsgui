@@ -1,0 +1,37 @@
+[
+  {
+    "name": "dtsgui",
+    "organization": "U.S. Geological Survey",
+    "description": "Distributed Temperature Sensor GUI",
+    "version": "1.0.0",
+    "status": "Release Candidate",
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "Public Domain, CC0-1.0",
+          "URL": "https://code.usgs.gov/water/espd/hgb/DTSGUI/raw/master/LICENSE.md"
+        }
+      ]
+    },
+    "homepageURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI",
+    "downloadURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI/-/archive/master/DTSGUI-master.zip",
+    "disclaimerURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI/raw/master/DISCLAIMER.md",
+    "repositoryURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI.git",
+    "vcs": "git",
+    "laborHours": 0,
+    "tags": [
+      "FO-DTS"
+    ],
+    "languages": [
+      "Python"
+    ],
+    "contact": {
+      "name": "Marian Domanski",
+      "email": "mdomanski@usgs.gov"
+    },
+    "date": {
+      "metadataLastUpdated": "2019-10-18"
+    }
+  }
+]
