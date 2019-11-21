@@ -4,7 +4,7 @@
     "organization": "U.S. Geological Survey",
     "description": "Distributed Temperature Sensor GUI",
     "version": "1.0.0",
-    "status": "Release Candidate",
+    "status": "Production",
     "permissions": {
       "usageType": "openSource",
       "licenses": [
@@ -15,7 +15,7 @@
       ]
     },
     "homepageURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI",
-    "downloadURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI/-/archive/master/DTSGUI-master.zip",
+    "downloadURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI/-/archive/v1.0.0/DTSGUI-v1.0.0.zip",
     "disclaimerURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI/raw/master/DISCLAIMER.md",
     "repositoryURL": "https://code.usgs.gov/water/espd/hgb/DTSGUI.git",
     "vcs": "git",
@@ -31,7 +31,7 @@
       "email": "mdomanski@usgs.gov"
     },
     "date": {
-      "metadataLastUpdated": "2019-10-18"
+      "metadataLastUpdated": "2019-11-21"
     }
   }
 ]
