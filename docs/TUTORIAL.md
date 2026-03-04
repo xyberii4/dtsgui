@@ -140,7 +140,8 @@ or
 interpreter (not *in* the package directory, but on the same level as the
 package).
 
-Email [mdomanski@usgs.gov](mailto:mdomanski@usgs.gov) to request an API key if
+Email [aetucker@usgs.gov](mailto:aetucker@usgs.gov) or 
+[mbriggs@usgs.gov](malto:mbriggs@usgs.gov) to request an API key if
 you don't have access to one.
 
 To view the georeferenced temperature data, click the Google Maps Viewer
