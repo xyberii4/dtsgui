@@ -6,4 +6,4 @@ DTSGUI is a public-domain software tool to import, manage, parse/cull, georefere
 See [TUTORIAL.md](docs/TUTORIAL.md) for a quick start tutorial.
 
 ## Google Maps API key
-Email [mdomanski@usgs.gov](mailto:mdomanski@usgs.gov) to request an API key for the Google Maps feature.
+Email [aetucker@usgs.gov](mailto:aetucker@usgs.gov) or [mbriggs@usgs.gov](malto:mbriggs@usgs.gov) to request an API key for the Google Maps feature.
