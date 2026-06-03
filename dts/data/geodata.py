@@ -39,7 +39,7 @@ class Geodata(object):
 
         geo_raw = np.core.records.fromarrays(geodata, names='pos, north, east')
         self.raw = self.ch.create_dataset('geo_raw', data=geo_raw)
-        if type is 'eastingnorthing':
+        if type == 'eastingnorthing':
             self.raw.attrs['type'] = 'eastingnorthing'
         else:
             self.raw.attrs['type'] = 'latlon'
@@ -72,7 +72,7 @@ class Geodata(object):
         if interval is None:
             interval = data.attrs['dst_interval']
             # interval = self.parent.data.get_interval()
-        print "Interpolating..."
+        print("Interpolating...")
 
         interp_lengths = self.parent.data.get_dist_array(interval, offset)
 

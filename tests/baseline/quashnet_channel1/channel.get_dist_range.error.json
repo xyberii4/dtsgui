@@ -1,0 +1,4 @@
+{
+  "exception_class": "AttributeError", 
+  "message": "'Dataset' object has no attribute 'data'"
+}

@@ -1,14 +1,15 @@
 import numpy as np
+import h5py
 
 import logging as log
-from dataset import Dataset
+from .dataset import Dataset
 
 
 class Subsets(dict):
     def __init__(self, parent):
         self.parent = parent
         self.__hdf__ = self.parent.__hdf__.require_group("subsets")
-        for i in self.__hdf__.keys():
+        for i in list(self.__hdf__.keys()):
             self[i] = Subset(self, key = i)
 
     def create_new(self, title):
@@ -34,7 +35,6 @@ class Subset(Dataset):
                 title = None
             self.key = key
 
-        import h5py
         ref_dtype = h5py.special_dtype(ref=h5py.RegionReference)
         self.__hdf__ = parent.__hdf__.require_dataset(self.key, (1,), dtype=ref_dtype, exact=True)
         self.array = self.__hdf__
@@ -99,7 +99,7 @@ class Subset(Dataset):
         args = [x_min, x_max, t_min, t_max]
         names = ['x_min', 'x_max', 't_min', 't_max']
         for key, item in zip(names, args):
-            print key+": "+str(item)
+            print(key+": "+str(item))
             self.__set_attribute__(key, item)
 
     def get_dist(self, array_key):
@@ -148,7 +148,7 @@ class Subset(Dataset):
         aslug = re.sub('\s+', '_', aslug)
 
         a = 2
-        while aslug in self.parent.keys():
+        while aslug in list(self.parent.keys()):
             aslug += "_{}".format(a)
             a += 1
 

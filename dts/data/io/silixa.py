@@ -3,7 +3,7 @@ import xml.etree.ElementTree as et
 
 import numpy as np
 
-from base import Importer
+from .base import Importer
 import logging
 
 

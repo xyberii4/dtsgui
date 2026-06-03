@@ -3,8 +3,8 @@
 import h5py
 from dts.data.channel import Channel
 from dts.data.dataset import RawDataset, Dataset
-from sensornet import SensornetImporter
-from silixa import SilixaImporter
+from .sensornet import SensornetImporter
+from .silixa import SilixaImporter
 import logging as log
 
 
@@ -51,7 +51,7 @@ def import_data(dataset, name, folder, file_type="sensornet"):
     log.debug("{0} files to be imported".format(len(importer.files)))
     for i, item in enumerate(importer.files):
         temps, time = importer.load_file(item)
-        print time
+        print(time)
         channel.__hdf__['data_raw'][i] = temps
         times[i] = time
 

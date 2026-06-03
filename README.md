@@ -9,3 +9,15 @@ See [TUTORIAL.md](docs/TUTORIAL.md) for a quick start tutorial.
 
 ## Google Maps API key
 Email [aetucker@usgs.gov](mailto:aetucker@usgs.gov) or [mbriggs@usgs.gov](malto:mbriggs@usgs.gov) to request an API key for the Google Maps feature.
+
+## Local Development
+
+Dependency management has been migrated to [Pixi](https://pixi.sh).
+
+To install dependencies and run the application:
+```bash
+pixi install
+pixi run run
+```
+
+> **Note**: The baseline capture script (`tests/capture_baseline.py`) must be run via the original Python 2.7 conda environment directly, **never** via pixi. See [tests/README.md](tests/README.md) for details.

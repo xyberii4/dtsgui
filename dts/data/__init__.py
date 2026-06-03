@@ -102,7 +102,7 @@ class DataFile:
         """
         try:
             channel = io.import_data(self, name, folder, file_type)
-        except Exception, err:
+        except Exception as err:
             log.error(str(err))
             raise Exception("Import failed.")
 
@@ -116,7 +116,7 @@ class DataFile:
     def get_channels(self):
         """Returns a list of the available data channels"""
 
-        return self.__hdf__.keys()
+        return list(self.__hdf__.keys())
 
     def set_working_channel(self, id=None, num=None):
         """Sets the working channel of this instance
@@ -133,10 +133,10 @@ class DataFile:
         """
         if id is None:
             if num != None:
-                id = self.channels.keys()[num]
+                id = list(self.channels.keys())[num]
             else:
                 try:
-                    id = self.channels.keys()[0]
+                    id = list(self.channels.keys())[0]
                 except:
                     raise Exception(
                         "No available data channels found. Please try another file.")
@@ -161,7 +161,7 @@ class DataFile:
         """Returns true if the filename is does not have a .dts extension)"""
         import os
         basename, extension = os.path.splitext(self.__hdf__.filename)
-        if extension is not '.dts':
+        if extension != '.dts':
             return True
         else:
             return False

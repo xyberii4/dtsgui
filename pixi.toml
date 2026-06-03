@@ -1,0 +1,57 @@
+[workspace]
+name = "dtsgui"
+version = "1.0.0"
+description = ""
+channels = ["conda-forge"]
+platforms = ["win-64", "osx-64", "linux-64"]
+
+[tasks]
+run = "python dts_app.py"
+# NOTE: capture-baseline must be run via the Python 2.7 conda env, not pixi.
+# See tests/README.md.
+capture-baseline-SEE-README = "echo 'Run via: conda run -n DTSGUI python tests/capture_baseline.py'"
+test = "pytest tests/test_regression.py -v"
+
+[dependencies]
+# --- Core runtime ---
+python = "3.13.*"
+pip = "*"
+setuptools = "*"
+wheel = "*"
+
+# --- Data & science ---
+numpy = "*"
+pandas = "*"
+h5py = "*"
+matplotlib = "*"
+
+# --- Geospatial ---
+gdal = "*"
+
+# --- GUI ---
+wxpython = ">=4.2"
+
+# --- Networking ---
+requests = "*"
+
+# --- Jupyter ---
+jupyter = "*"
+ipywidgets = "*"
+
+# --- Documentation ---
+sphinx = "*"
+
+# --- Code quality & Testing ---
+pylint = "*"
+autopep8 = "*"
+pytest = "*"
+
+# --- PyPI dependencies ---
+[pypi-dependencies]
+altgraph = "*"
+colorama = "*"
+decorator = "*"
+macholib = "*"
+pefile = "*"
+pyinstaller = "*"
+python-dateutil = "*"

@@ -10,6 +10,7 @@ from dts.ui.panels import Panel, ModalPanel
 class WindowModal(ModalPanel):
     def set_interval_offset(self):
         from dts.ui.panels.set_interval_offset import OffsetPanel
+
         page = OffsetPanel(self)
         self.Show(page)
 
@@ -30,10 +31,11 @@ class MainPanel(Panel):
 
 class GraphFrame(wx.Frame):
     """The main window of the application"""
-    title = 'Distributed temperature sensor GUI'
+
+    title = "Distributed temperature sensor GUI"
 
     def __init__(self, app):
-        wx.Frame.__init__(self, None, -1, self.title, size=(800,600))
+        wx.Frame.__init__(self, None, -1, self.title, size=(800, 600))
         dts.ui.window = self
         self.SetSizeHints(480, 480, -1, -1)  # Window minimum size
 
@@ -76,33 +78,36 @@ class GraphFrame(wx.Frame):
 
     def on_set_colormap(self, event):
         from dts.ui.panels.colormap_selector import ColormapSelector
+
         parent = dts.ui.tabset
         page = ColormapSelector(parent)
         parent.AddPage(page, "Colormap Selector")
 
     def save_data(self, event):
-        #if self.data.is_temporary(): self.save_data_as()
-        #else: self.data.save()
+        # if self.data.is_temporary(): self.save_data_as()
+        # else: self.data.save()
         self.data.save()
 
     def save_data_as(self, event=None):
         wildcard = "DTS GUI file (*.dts)|*.dts|"
-        path = dts.ui.dialog.file_io.save_file("Create a DTS GUI file for imported data:",
-                                               wildcard
-                                               )
+        path = dts.ui.dialog.file_io.save_file(
+            "Create a DTS GUI file for imported data:", wildcard
+        )
         self.data.change_filename(path)
 
     def on_close(self, evt):
-        dlg = wx.MessageDialog(self,
-                               "Do you want to save your data?",
-                               'You are exiting DTS-GUI.',
-                               wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self,
+            "Do you want to save your data?",
+            "You are exiting DTS-GUI.",
+            wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION,
+        )
         toDo = dlg.ShowModal()
         dlg.Destroy()
         if toDo == wx.ID_YES:
             self.data.close()
             evt.Skip()
-            #self.Close(True)
+            # self.Close(True)
             self.Destroy()
         elif toDo == wx.ID_NO:
             self.Destroy()
@@ -118,8 +123,13 @@ class GraphFrame(wx.Frame):
         subsets = channel.get_subsets()
         subset_list.extend(subsets.keys())
 
-        with wx.SingleChoiceDialog(self, "Choose a subset to export", "Choose a subset", subset_list,
-                                   wx.CHOICEDLG_STYLE) as dlg:
+        with wx.SingleChoiceDialog(
+            self,
+            "Choose a subset to export",
+            "Choose a subset",
+            subset_list,
+            wx.CHOICEDLG_STYLE,
+        ) as dlg:
             if dlg.ShowModal() == wx.ID_OK:
                 if dlg.GetSelection() == 0:
                     data = channel.data
@@ -127,10 +137,12 @@ class GraphFrame(wx.Frame):
                     subset = dlg.GetStringSelection()
                     data = channel.subsets[subset]
 
-                print data.get_title()
+                print(data.get_title())
 
-                wildcard = 'CSV file (*.csv)|*.csv|'
-                path = dts.ui.dialog.file_io.save_file("Save active data as a CSV file:", wildcard)
+                wildcard = "CSV file (*.csv)|*.csv|"
+                path = dts.ui.dialog.file_io.save_file(
+                    "Save active data as a CSV file:", wildcard
+                )
 
                 if path:
                     data.to_csv(path)
@@ -144,8 +156,13 @@ class GraphFrame(wx.Frame):
         subsets = channel.get_subsets()
         subset_list.extend(subsets.keys())
 
-        with wx.SingleChoiceDialog(self, "Choose a subset to export", "Choose a subset", subset_list,
-                                   wx.CHOICEDLG_STYLE) as dlg:
+        with wx.SingleChoiceDialog(
+            self,
+            "Choose a subset to export",
+            "Choose a subset",
+            subset_list,
+            wx.CHOICEDLG_STYLE,
+        ) as dlg:
             if dlg.ShowModal() == wx.ID_OK:
                 if dlg.GetSelection() == 0:
                     data = channel.data
@@ -153,10 +170,12 @@ class GraphFrame(wx.Frame):
                     subset = dlg.GetStringSelection()
                     data = channel.subsets[subset]
 
-                print data.get_title()
+                print(data.get_title())
 
-                wildcard = 'CSV file (*.csv)|*.csv|'
-                path = dts.ui.dialog.file_io.save_file("Save active data statistics as a CSV file:", wildcard)
+                wildcard = "CSV file (*.csv)|*.csv|"
+                path = dts.ui.dialog.file_io.save_file(
+                    "Save active data statistics as a CSV file:", wildcard
+                )
 
                 if path:
                     data.stats_to_csv(path)
@@ -172,8 +191,12 @@ class GraphFrame(wx.Frame):
         try:
             current_page.save_image()
         except AttributeError:
-            with wx.MessageDialog(self, "Unable to save an image of current page", caption="Unable to save image",
-                                  style=wx.ICON_ERROR) as msg_dlg:
+            with wx.MessageDialog(
+                self,
+                "Unable to save an image of current page",
+                caption="Unable to save image",
+                style=wx.ICON_ERROR,
+            ) as msg_dlg:
                 msg_dlg.CenterOnParent()
                 msg_dlg.ShowModal()
 
@@ -183,11 +206,11 @@ class GraphFrame(wx.Frame):
         :param event:
         :return:
         """
-        if hasattr(self, 'tabs'):
+        if hasattr(self, "tabs"):
             current_page = self.tabs.get_current_page()
-            save_image_menu_item_id = self.menubar.FindMenuItem('File', 'Save image')
+            save_image_menu_item_id = self.menubar.FindMenuItem("File", "Save image")
             save_image_menu_item = self.menubar.FindItemById(save_image_menu_item_id)
-            if hasattr(current_page, 'save_image'):
+            if hasattr(current_page, "save_image"):
                 save_image_menu_item.Enable(True)
             else:
                 save_image_menu_item.Enable(False)

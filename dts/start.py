@@ -65,7 +65,7 @@ class Initialize:
                 if not filename:
                     raise ValueError("Import process cancelled. Exiting.")
                 if dts.DEBUG:
-                    print filename
+                    print(filename)
                 self.data = DataFile(filename, create=self.initialize)
                 try:
                     self.data.import_channel(

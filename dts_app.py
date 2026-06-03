@@ -1,8 +1,9 @@
 import wx
-from wx.lib.mixins.inspection import InspectionMixin
 import dts
 import sys
-import os
+import traceback
+
+from dts.ui.window import GraphFrame
 
 """
 This file is the major entry-point into the DTS application that initializes the GUI after asking for user options 
@@ -11,7 +12,7 @@ This file is the major entry-point into the DTS application that initializes the
     ``python dts_app.py``
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         dts.DEBUG = False
 
@@ -22,16 +23,14 @@ if __name__ == '__main__':
 
         app.data = init.data
 
-        from dts.ui.window import GraphFrame
         app.frame = GraphFrame(app)
 
         app.frame.Show()
         sys.exit(app.MainLoop())
 
-    except Exception, err:
+    except Exception as err:
         err = str(err)
         if dts.DEBUG:
-            import sys, traceback
             xc = traceback.format_exception(*sys.exc_info())
-            err = 'DTS GUI debug message:\n'+''.join(xc)
+            err = "DTS GUI debug message:\n" + "".join(xc)
         wx.MessageBox(err)

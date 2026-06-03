@@ -1,8 +1,7 @@
 import matplotlib.pyplot as pyplot
 import wx
-import evt
+from . import evt
 import logging as log
-import time_format
 
 active_viewer = None
 tabset = None
@@ -11,9 +10,11 @@ tabset = None
 class ButtonFont(wx.Font):
     def __init__(self):
         fsize = 10
-        if wx.Platform == '__WXMSW__':
+        if wx.Platform == "__WXMSW__":
             fsize = 8
-        wx.Font.__init__(self, fsize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        wx.Font.__init__(
+            self, fsize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD
+        )
 
 
 class ColorManager(object):
@@ -30,7 +31,7 @@ class ColorManager(object):
     def on_colormap_changed(self, event):
         self.set_colormap(event.cmap)
         event.Skip()
-        log.info("Colormap changed to "+event.cmap.name)
+        log.info("Colormap changed to " + event.cmap.name)
 
     def set_colormap(self, cmap=None):
         """Sets the main colormap for the application. Takes a valid matplotlib colormap name or a colormap object."""
@@ -54,7 +55,9 @@ class ColorManager(object):
         self.temp_extents = temp_extents
 
         log.debug("Firing color map adjusted event with {}, {}".format(*temp_extents))
-        new_event = evt.ColormapAdjustedEvent(-1, source=source, temp_extents=temp_extents)
+        new_event = evt.ColormapAdjustedEvent(
+            -1, source=source, temp_extents=temp_extents
+        )
         wx.PostEvent(self.window, new_event)
 
     def get_temp_extents(self):
@@ -70,7 +73,7 @@ class WindowStateManager(object):
         self.set_current_channel(self.dataset.ch)
         try:
             # initially set the values to the first channel and the first subset
-            self.set_current_subset(self.dataset.ch.subsets.items()[0][1])
+            self.set_current_subset(list(self.dataset.ch.subsets.items())[0][1])
         except IndexError:
             log.error("No subsets found")
             self.current_subset = None
@@ -84,7 +87,9 @@ class WindowStateManager(object):
 
     def on_subset_edited(self, event):
         self.set_current_subset(event.subset)
-        newevent = evt.SubsetSelectedEvent(wx.ID_ANY, new=event.new, subset=event.subset)
+        newevent = evt.SubsetSelectedEvent(
+            wx.ID_ANY, new=event.new, subset=event.subset
+        )
         wx.PostEvent(self.window, newevent)
 
     def get_current_channel(self):

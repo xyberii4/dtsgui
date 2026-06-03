@@ -1,9 +1,9 @@
 import matplotlib as M
 M.use('WXAgg') # This must be called before any other importing of matplotlib, so we put it at the front of the script.
 import logging as log
-from start import Initialize
+from .start import Initialize
 import wx
-import data as data
+from . import data as data
 from wx.lib.mixins.inspection import InspectionMixin
 import os
 import IPython # something IPython imports makes it possible to import GDAL
@@ -22,7 +22,7 @@ def get_resource(relative):
             ),
             relative
         )
-    except Exception, error:
+    except Exception as error:
         log.exception(error)
 
 
@@ -52,7 +52,7 @@ class Logging:
 
     def set_critical(self, event=None):
         log.basicConfig(format=self.format, level=log.CRITICAL)
-        print "Logging level set to critical."
+        print("Logging level set to critical.")
 
     def set_error(self, event=None):
         log.basicConfig(format=self.format, level=log.ERROR)

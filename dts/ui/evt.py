@@ -35,13 +35,13 @@ class _test(object):
         event = TestCommandEvent(-1, attr1="hello")
         #post the event
         wx.PostEvent(self, event)
-        print "Test command event fired from "+self.GetName()
+        print("Test command event fired from "+self.GetName())
 
     def fire_test_event(self):
         event = TestEvent()
         #post the event
         wx.PostEvent(self, event)
-        print "Test event fired from "+self.GetName()
+        print("Test event fired from "+self.GetName())
 
     def catch_test_event(self):
         """Catches the test event in whatever object this function is set in, and prints the result. Useful for debugging purposes."""
@@ -49,11 +49,11 @@ class _test(object):
         self.Bind(EVT_TEST_EVENT, self._evt_test)
 
     def _cmd_test(self, evt):
-        print "Command event caught in: "+self.GetName()
+        print("Command event caught in: "+self.GetName())
         evt.Skip()
 
     def _evt_test(self, evt):
-        print "Event caught in: "+self.GetName()
+        print("Event caught in: "+self.GetName())
         evt.Skip()
 
 # Events
