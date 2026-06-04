@@ -4,7 +4,7 @@ import dts.ui.evt as evt
 import logging as log
 from dts.ui.panels import NotebookChildPanel as Panel
 from dts.ui.plot import PlotImage
-from range_control import SpaceRangeControl, TimeRangeControl
+from .range_control import SpaceRangeControl, TimeRangeControl
 from dts.ui.controls import Fieldset
 
 
@@ -56,7 +56,7 @@ class ExtentsCtrlPanel(Panel):
             }
         else:
             self.extents = subset.get_bounds(format="timespace")
-            print self.extents
+            print(self.extents)
 
     def __layout(self, button_label):
         self.sizer = wx.GridBagSizer()
@@ -78,7 +78,7 @@ class ExtentsCtrlPanel(Panel):
                 self.data = dataset
 
     def __extentControls(self):
-        print self.extents
+        print(self.extents)
         self.space = SpaceRangeControl(self,"Distance Range", data=self.data, extents=self.extents["space"])
         self.time = TimeRangeControl(self,"Time Range", data=self.data, extents=self.extents["time"])
 
@@ -115,7 +115,7 @@ class ExtentsCtrlPanel(Panel):
         self.buttons["cancel"] = wx.Button(self, -1, 'Cancel')
 
         for item in ["extents","accept", "cancel"]:
-            button_sizer.Add(self.buttons[item], 0, wx.ALIGN_RIGHT|wx.LEFT, 5)
+            button_sizer.Add(self.buttons[item], 0, wx.LEFT, 5)
 
         self.sizer.Add(button_sizer, wx.GBPosition(1,0), wx.GBSpan(1,3), wx.ALIGN_RIGHT| wx.ALL, border=5)
 
@@ -158,7 +158,7 @@ class ExtentsCtrlPanel(Panel):
 
             control = getattr(self,label)
             control.set_extents(self.extents[label])
-        print self.extents
+        print(self.extents)
         self.Parent.plot.plot_box(self.extents)
 
     def GetParentNotebook(self):
@@ -197,7 +197,7 @@ class SubsetCtrlPanel(ExtentsCtrlPanel):
         insizer.Add(self.desc_ctrl, 1, wx.EXPAND|wx.GROW|wx.TOP, 5)
         self.desc_ctrl["control"].Bind(wx.EVT_TEXT, self.update_description)
 
-        self.sizer.Add(insizer, wx.GBPosition(0,0), None, wx.EXPAND|wx.GROW|wx.ALL, 5)
+        self.sizer.Add(insizer, wx.GBPosition(0,0), wx.DefaultSpan, wx.EXPAND|wx.GROW|wx.ALL, 5)
 
     def update_title(self, evt):
         string = evt.GetString()

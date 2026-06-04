@@ -14,7 +14,7 @@ class Importer:
 
     def __init__(self, folder):
 
-        dirlist = os.listdir(folder)
+        dirlist = sorted(os.listdir(folder))
 
         # this generates a list of files in the directory which will be imported.
         last_ext = None

@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     except Exception as err:
         err = str(err)
-        if dts.DEBUG:
-            xc = traceback.format_exception(*sys.exc_info())
-            err = "DTS GUI debug message:\n" + "".join(xc)
-        wx.MessageBox(err)
+        xc = traceback.format_exception(*sys.exc_info())
+        err = "DTS GUI debug message:\n" + "".join(xc)
+        print(err, file=sys.stderr)
+        sys.exit(1)

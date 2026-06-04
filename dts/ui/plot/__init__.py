@@ -6,13 +6,15 @@ import dts
 import matplotlib.style
 import matplotlib as M
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as Canvas
-from matplotlib.backends.backend_wxagg import NavigationToolbar2Wx
+from matplotlib.backends.backend_wxagg import (
+    NavigationToolbar2WxAgg as NavigationToolbar2Wx,
+)
 
 from dts.ui.panels import Panel
 
 import logging as log
 
-M.style.use('classic')
+M.style.use("classic")
 
 
 class PlotFigure(M.figure.Figure):
@@ -25,11 +27,13 @@ class PlotFigure(M.figure.Figure):
 class PlotPanel(Panel):
     """The PlotPanel has a Figure and a Canvas. OnSize events simply set a
     flag, and the actual resizing of the figure is triggered by an Idle event."""
-    def __init__(self, parent, id=-1, dpi=300, toolbar=None, **kwargs ):
-        if 'style' not in kwargs.keys(): kwargs['style'] = wx.NO_FULL_REPAINT_ON_RESIZE
+
+    def __init__(self, parent, id=-1, dpi=300, toolbar=None, **kwargs):
+        if "style" not in kwargs.keys():
+            kwargs["style"] = wx.NO_FULL_REPAINT_ON_RESIZE
         Panel.__init__(self, parent, id=id, **kwargs)
 
-        self.figure = PlotFigure(self, dpi=dpi, facecolor='#dddddd')
+        self.figure = PlotFigure(self, dpi=dpi, facecolor="#dddddd")
         self.canvas = Canvas(self, -1, self.figure)
 
         self._resizeflag = False
@@ -61,8 +65,8 @@ class PlotPanel(Panel):
                 evt.Skip()
 
     def _SetSize(self):
-        pixels = self.GetSizeTuple()
-        self.SetSize( pixels )
+        pixels = self.GetSize()
+        self.SetSize(pixels)
         self.canvas.draw()
 
     def draw(self):
@@ -75,8 +79,9 @@ class PlotPanel(Panel):
         """
         valid_dpi = False
         while not valid_dpi:
-            with wx.TextEntryDialog(self, "Enter a DPI for the image:", caption="Image DPI") as \
-                    text_entry_dlg:
+            with wx.TextEntryDialog(
+                self, "Enter a DPI for the image:", caption="Image DPI"
+            ) as text_entry_dlg:
                 text_entry_dlg.CenterOnParent()
                 text_entry_dlg.SetValue("100")
                 if text_entry_dlg.ShowModal() == wx.ID_OK:
@@ -86,8 +91,12 @@ class PlotPanel(Panel):
                             raise ValueError
                         valid_dpi = True
                     except ValueError:
-                        with wx.MessageDialog(self, "Invalid DPI entry. Enter a valid DPI.", caption="Invalid DPI",
-                                              style=wx.OK | wx.CENTER | wx.ICON_ERROR) as msg_dlg:
+                        with wx.MessageDialog(
+                            self,
+                            "Invalid DPI entry. Enter a valid DPI.",
+                            caption="Invalid DPI",
+                            style=wx.OK | wx.CENTER | wx.ICON_ERROR,
+                        ) as msg_dlg:
                             msg_dlg.ShowModal()
                 else:
                     return
@@ -95,27 +104,34 @@ class PlotPanel(Panel):
         # modified from matplotlib.backends.backend_wxagg.NavigationToolbar2Wx.save_figure()
         filetypes, exts, filter_index = self.canvas._get_imagesave_wildcards()
         default_file = self.canvas.get_default_filename()
-        dlg = wx.FileDialog(self, "Save to file", "", default_file,
-                            filetypes,
-                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(
+            self,
+            "Save to file",
+            "",
+            default_file,
+            filetypes,
+            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+        )
         dlg.SetFilterIndex(filter_index)
         if dlg.ShowModal() == wx.ID_OK:
             dirname = dlg.GetDirectory()
             filename = dlg.GetFilename()
             format = exts[dlg.GetFilterIndex()]
             basename, ext = os.path.splitext(filename)
-            if ext.startswith('.'):
+            if ext.startswith("."):
                 ext = ext[1:]
-            if ext in ('svg', 'pdf', 'ps', 'eps', 'png') and format != ext:
+            if ext in ("svg", "pdf", "ps", "eps", "png") and format != ext:
                 format = ext
 
             self.canvas.print_figure(
-                os.path.join(dirname, filename), format=format, dpi=image_dpi)
+                os.path.join(dirname, filename), format=format, dpi=image_dpi
+            )
 
 
 from matplotlib.patches import Rectangle
 from dts.ui.plot.main.axes.main import MainPlot
 from matplotlib.projections import register_projection
+
 register_projection(MainPlot)
 
 
@@ -140,13 +156,19 @@ class PlotImage(PlotPanel):
 
     def _draw(self):
 
-        self.ax = self.figure.add_axes([.08, .05, .9, .9], projection="MainPlot")
+        self.ax = self.figure.add_axes([0.08, 0.05, 0.9, 0.9], projection="MainPlot")
 
     def __unbind_events(self):
-        self.window.Unbind(dts.ui.evt.EVT_DATE_FORMAT_SET, handler=self.ax._set_time_ticks)
-        self.window.Unbind(dts.ui.evt.EVT_COLORMAP_CHANGED, handler=self.ax._onColormapChanged)
+        self.window.Unbind(
+            dts.ui.evt.EVT_DATE_FORMAT_SET, handler=self.ax._set_time_ticks
+        )
+        self.window.Unbind(
+            dts.ui.evt.EVT_COLORMAP_CHANGED, handler=self.ax._onColormapChanged
+        )
         self.window.Unbind(dts.ui.evt.EVT_OFFSET_SET, handler=self.ax._onOffsetSet)
-        self.window.Unbind(dts.ui.evt.EVT_COLORMAP_ADJUSTED, handler=self.ax._on_clim_changed)
+        self.window.Unbind(
+            dts.ui.evt.EVT_COLORMAP_ADJUSTED, handler=self.ax._on_clim_changed
+        )
 
     def Destroy(self, *args, **kwargs):
         self.__unbind_events()
@@ -154,17 +176,24 @@ class PlotImage(PlotPanel):
         super(PlotPanel, self).Destroy(*args, **kwargs)
 
     def plot_rectangle(self, extents):
-        width = extents['space']['max'] - extents['space']['min']+1
-        height = extents['time']['max'] - extents['time']['min']+1
-        loc = (extents['space']['min']-0.5, extents['time']['min']-0.5)
+        width = extents["space"]["max"] - extents["space"]["min"] + 1
+        height = extents["time"]["max"] - extents["time"]["min"] + 1
+        loc = (extents["space"]["min"] - 0.5, extents["time"]["min"] - 0.5)
         color_options = self.window.colors.plot_overlay
-        return Rectangle(loc, width, height, facecolor='none', edgecolor=color_options['color'],
-                         alpha=color_options['alpha'], linewidth=2)
+        return Rectangle(
+            loc,
+            width,
+            height,
+            facecolor="none",
+            edgecolor=color_options["color"],
+            alpha=color_options["alpha"],
+            linewidth=2,
+        )
 
     def plot_box(self, extents):
         rect = self.plot_rectangle(extents)
-        if 'box' in self.__dict__:
-            self.ax.patches.remove(self.box)
+        if "box" in self.__dict__:
+            self.box.remove()
         self.box = self.ax.add_patch(rect)
         self.canvas.draw()
 

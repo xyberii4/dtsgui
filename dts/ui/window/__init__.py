@@ -1,7 +1,7 @@
 import wx
 import dts
 from dts.ui.tabs import PlotNotebook
-from menu import MenuBar
+from .menu import MenuBar
 from dts.ui import ColorManager, WindowStateManager
 import logging as log
 from dts.ui.panels import Panel, ModalPanel
@@ -89,7 +89,7 @@ class GraphFrame(wx.Frame):
         self.data.save()
 
     def save_data_as(self, event=None):
-        wildcard = "DTS GUI file (*.dts)|*.dts|"
+        wildcard = "DTS GUI file (*.dts)|*.dts"
         path = dts.ui.dialog.file_io.save_file(
             "Create a DTS GUI file for imported data:", wildcard
         )
@@ -139,7 +139,7 @@ class GraphFrame(wx.Frame):
 
                 print(data.get_title())
 
-                wildcard = "CSV file (*.csv)|*.csv|"
+                wildcard = "CSV file (*.csv)|*.csv"
                 path = dts.ui.dialog.file_io.save_file(
                     "Save active data as a CSV file:", wildcard
                 )
@@ -172,7 +172,7 @@ class GraphFrame(wx.Frame):
 
                 print(data.get_title())
 
-                wildcard = "CSV file (*.csv)|*.csv|"
+                wildcard = "CSV file (*.csv)|*.csv"
                 path = dts.ui.dialog.file_io.save_file(
                     "Save active data statistics as a CSV file:", wildcard
                 )

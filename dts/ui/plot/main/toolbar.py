@@ -1,5 +1,5 @@
 import wx
-from matplotlib.backends.backend_wxagg import NavigationToolbar2Wx as Toolbar
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 import logging as log
 from dts.ui.panels import Panel
 from dts.ui import ButtonFont
@@ -8,7 +8,14 @@ temp_format = "{0:.1f}"
 
 
 class ToolBarBase(object):
-    def add_ctrl(self, control=wx.TextCtrl, label=None, format_string=temp_format, size=40, init_val=1):
+    def add_ctrl(
+        self,
+        control=wx.TextCtrl,
+        label=None,
+        format_string=temp_format,
+        size=40,
+        init_val=1,
+    ):
         try:
             init_val = format_string.format(init_val)
         except:
@@ -17,8 +24,13 @@ class ToolBarBase(object):
             lbl = wx.StaticText(self, (-1, 28), label)
             self.AddControl(lbl)
         # allows the processing of enter commands while the focus is on the control
-        ctrl = control(self, -1, init_val, size=(size, 26),
-                       style=wx.TE_PROCESS_ENTER | wx.TAB_TRAVERSAL)
+        ctrl = control(
+            self,
+            -1,
+            init_val,
+            size=(size, 26),
+            style=wx.TE_PROCESS_ENTER | wx.TAB_TRAVERSAL,
+        )
         self.AddControl(ctrl)
         return ctrl
 
@@ -40,19 +52,19 @@ class ColorbarExtentsControl(Panel):
         self.controls = {}
         if range is None:
             range = self.plot.data.get_temp_range()
-        kwargs = dict(size=(50, -1))
+        kwargs = dict(size=(50, -1), style=wx.TE_PROCESS_ENTER)
         self.controls["min"] = wx.TextCtrl(self, -1, **kwargs)
         self.controls["max"] = wx.TextCtrl(self, -1, **kwargs)
 
         self.set_min(range[0])
         self.set_max(range[1])
-        for key in ['min', 'max']:
+        for key in ["min", "max"]:
             ctrl = self.controls[key]
             self.sizer.Add(ctrl, 0, wx.LEFT, 5)
             ctrl.Bind(wx.EVT_KILL_FOCUS, self.on_set_limits)
             ctrl.Bind(wx.EVT_TEXT_ENTER, self.on_set_limits)
 
-        auto = wx.Button(self, label='Auto')
+        auto = wx.Button(self, label="Auto")
         auto.SetFont(ButtonFont())
         self.sizer.Add(auto, 0, wx.LEFT, 5)
         auto.Bind(wx.EVT_BUTTON, self.on_auto_clim)
@@ -89,13 +101,13 @@ class ColorbarExtentsControl(Panel):
     def set_min(self, value):
         value = float(value)
         self.min = value
-        self.controls['min'].SetValue(self.temp_format.format(value))
+        self.controls["min"].SetValue(self.temp_format.format(value))
         self.set_auto_clim()
 
     def set_max(self, value):
         value = float(value)
         self.max = value
-        self.controls['max'].SetValue(self.temp_format.format(value))
+        self.controls["max"].SetValue(self.temp_format.format(value))
         self.set_auto_clim()
 
     def on_set_limits(self, evt):
@@ -117,8 +129,7 @@ class ColorbarExtentsControl(Panel):
     def on_auto_clim(self, evt):
         temps = self.plot.data.get_temp_range()
         min, max = [float(i) for i in temps]
-        log.debug(
-            "Autoset colorbar extents to ({0:.1f}, {1:.2f})".format(min, max))
+        log.debug("Autoset colorbar extents to ({0:.1f}, {1:.2f})".format(min, max))
         self.plot.set_temp_extents(min, max)
         self.set_min(min)
         self.set_max(max)
@@ -131,11 +142,17 @@ class DisplayOptionsToolbar(Panel, ToolBarBase):
         Panel.__init__(self, parent, size=(-1, 36))
         self.window = self.GetTopLevelParent()
         from dts.ui.colors import LightRed
+
         self.SetBackgroundColour(LightRed)
         outsizer = wx.BoxSizer()
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        txt = wx.StaticText(self, -1, 'Colormap\nLimits',
-                            size=(-1, 30), style=wx.ALIGN_RIGHT | wx.TB_NODIVIDER)
+        txt = wx.StaticText(
+            self,
+            -1,
+            "Colormap\nLimits",
+            size=(-1, 30),
+            style=wx.ALIGN_RIGHT | wx.TB_NODIVIDER,
+        )
         txt.SetFont(ButtonFont())
         self.AddControl(txt, 0, wx.TOP, 3)
 
@@ -143,15 +160,14 @@ class DisplayOptionsToolbar(Panel, ToolBarBase):
         self.cbar_extents = ColorbarExtentsControl(self, temp_extents)
         self.AddControl(self.cbar_extents, 0, wx.TOP | wx.RIGHT, 5)
 
-        txt = wx.StaticText(self, -1, 'Subplot\nVisibility',
-                            style=wx.ALIGN_RIGHT)
+        txt = wx.StaticText(self, -1, "Subplot\nVisibility", style=wx.ALIGN_RIGHT)
         txt.SetFont(ButtonFont())
         self.AddControl(txt, 0, wx.TOP | wx.LEFT, 3)
 
         self.subplots = dict()
-        self.subplots['cbar'] = self.add_chkbox('Colorbar')
-        self.subplots['t_ax'] = self.add_chkbox('Time')
-        self.subplots['c_ax'] = self.add_chkbox('Cable')
+        self.subplots["cbar"] = self.add_chkbox("Colorbar")
+        self.subplots["t_ax"] = self.add_chkbox("Time")
+        self.subplots["c_ax"] = self.add_chkbox("Cable")
 
         for key in ["t_ax", "c_ax"]:
             self.subplots[key].SetValue(True)
@@ -183,29 +199,32 @@ class MainPlotToolbar(Toolbar, ToolBarBase):
 
         # self.displayOptions = self.Parent.displayOptions
 
-        control = wx.Button(self, label='Show Display Options')
+        control = wx.Button(self, label="Show Display Options")
         size = 10
         if wx.Platform == "__WXMSW__":
             size = 8
-        control.SetFont(wx.Font(size, wx.FONTFAMILY_DEFAULT,
-                                wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+        control.SetFont(
+            wx.Font(
+                size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL
+            )
+        )
         self.AddControl(control)
         control.Bind(wx.EVT_BUTTON, self._toggleDisplayOptions)
 
         self.AddSeparator()
 
         self.params = dict()
-        self.params['minmax'] = self.add_chkbox('Min/Max')
-        self.params['mean'] = self.add_chkbox('Mean')
-        self.params['std'] = self.add_chkbox('Std dev')
+        self.params["minmax"] = self.add_chkbox("Min/Max")
+        self.params["mean"] = self.add_chkbox("Mean")
+        self.params["std"] = self.add_chkbox("Std dev")
 
     def _toggleDisplayOptions(self, evt):
         button = evt.EventObject
         if self.Parent.displayOptions.IsShown():
-            button.SetLabel('Show Display Options')
+            button.SetLabel("Show Display Options")
             self.Parent.displayOptions.Hide()
         else:
-            button.SetLabel('Hide Display Options')
+            button.SetLabel("Hide Display Options")
             self.Parent.displayOptions.Show()
         self.Parent.Layout()
         # self.Parent.sizer.RecalcSizes()

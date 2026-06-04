@@ -43,7 +43,7 @@ class SubsetsListCtrl(wx.ListBox):
     def __change_options__(self, event=None):
         self.set_control_options()
         self.Set(self.titles)
-        print "Subsets List Box updated"
+        print("Subsets List Box updated")
         event.Skip()
 
     def __on_subset_selected(self, event):
@@ -58,9 +58,9 @@ class SubsetsListCtrl(wx.ListBox):
 
     def get_selection(self):
         sel = self.GetSelection()
-        print "Subset selected: {}".format(sel)
+        print("Subset selected: {}".format(sel))
         self.key = self.keys[sel]
-        print self.key
+        print(self.key)
         return self.subsets[self.key]
 
     def __onChange__(self, event):
@@ -70,12 +70,12 @@ class SubsetsListCtrl(wx.ListBox):
         wx.PostEvent(self, event)
 
 
-class Fieldset(wx.BoxSizer, dict):
+class Fieldset(wx.BoxSizer):
     def __init__(self, parent, label, control=None, text=None, sizer=None, **kwargs):
         """A class to simplify the construction of simple labeled fields. If a 'sizer' kwarg is specified, elements will
         be added to this sizer; otherwise, the class will act as its own sizer.
         """
-        dict.__init__(self)
+        self._data = {}
         if sizer is None:
             wx.BoxSizer.__init__(self, wx.VERTICAL)
             sizer = self
@@ -105,7 +105,14 @@ class Fieldset(wx.BoxSizer, dict):
                 "Expected either a wxPython object (under keyword 'control') or string under keyword 'text'.")
         sizer.Add(self["control"], **kwargs)
 
+    def __getitem__(self, key):
+        return self._data[key]
 
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    def __contains__(self, key):
+        return key in self._data
 class SubsetCtrl(Panel):
     focused = False
     last_good = None

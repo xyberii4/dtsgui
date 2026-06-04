@@ -14,8 +14,8 @@ def choose_dir(title):
     return path
 
 
-def choose_file(title, wildcard="*.*"):
-    dlg = wx.FileDialog(None, message=title, defaultDir=os.getcwd(), defaultFile="", style=wx.OPEN | wx.CHANGE_DIR)
+def choose_file(title, wildcard="All files (*.*)|*.*"):
+    dlg = wx.FileDialog(None, message=title, defaultDir=os.getcwd(), defaultFile="", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_CHANGE_DIR)
     if dlg.ShowModal() == wx.ID_OK:
         path = dlg.GetPath()
     else:
@@ -24,9 +24,9 @@ def choose_file(title, wildcard="*.*"):
     return path
 
 
-def save_file(title, wildcard="*.*"):
+def save_file(title, wildcard="All files (*.*)|*.*"):
     dlg = wx.FileDialog(None, message=title, defaultDir=os.getcwd(), defaultFile="", wildcard=wildcard,
-                        style=wx.SAVE | wx.CHANGE_DIR | wx.OVERWRITE_PROMPT)
+                        style=wx.FD_SAVE | wx.FD_CHANGE_DIR | wx.FD_OVERWRITE_PROMPT)
     if dlg.ShowModal() == wx.ID_OK:
         path = dlg.GetPath()
     else:

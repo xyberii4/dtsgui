@@ -2,6 +2,7 @@ import abc
 
 import wx
 import dts
+import dts.ui.time_format
 import logging as log
 
 
@@ -15,7 +16,7 @@ class Menu(wx.Menu):
             parent.Append(self, name)
         elif "Menu" in parent.__class__.__name__:
             self.id = id
-            parent.AppendMenu(id, name, self)
+            parent.Append(id, name, self)
 
     @abc.abstractmethod
     def create(self):
@@ -30,21 +31,24 @@ class Menu(wx.Menu):
 
 
 class FileMenu(Menu):
-
     def create(self):
 
         self.add("Import data", "Adds new channel data", self.on_import_data)
 
         self.AppendSeparator()
 
-        save_image_menu_item = self.add("Save image", "Save an image of the current panel", self.window.on_save_image)
+        save_image_menu_item = self.add(
+            "Save image",
+            "Save an image of the current panel",
+            self.window.on_save_image,
+        )
         save_image_menu_item.Enable(False)
 
         self.AppendSeparator()
 
         self.add("&Save", "Save your data.", self.window.save_data, id=wx.ID_SAVE)
 
-        if wx.Platform == '__WXMSW__':
+        if wx.Platform == "__WXMSW__":
             self.add("&Exit", "Quit DTS-GUI.", self.window.on_close, id=wx.ID_EXIT)
 
     def on_import_data(self, event):
@@ -67,7 +71,6 @@ class FileMenu(Menu):
 
 
 class ViewChannelMenu(Menu):
-
     def create(self):
 
         self.channel_menu_items = []
@@ -105,11 +108,12 @@ class RawDataMenu(Menu):
         dts.ui.tabset.add_trim_raw()
 
     def on_revert(self, event):
-        dialog = wx.MessageDialog(self.window,
-                                  'All trimming, optimization operations, and subsets will be lost.',
-                                  'Are you sure you want to revert to raw data?',
-                                  wx.YES_NO | wx.NO_DEFAULT | wx.ICON_EXCLAMATION
-                                  )
+        dialog = wx.MessageDialog(
+            self.window,
+            "All trimming, optimization operations, and subsets will be lost.",
+            "Are you sure you want to revert to raw data?",
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_EXCLAMATION,
+        )
         if dialog.ShowModal() == wx.ID_YES:
             self.window.status.current_channel.revert_to_raw()
         dialog.Destroy()
@@ -119,8 +123,11 @@ class RawDataMenu(Menu):
 class ViewMenu(Menu):
     def create(self):
 
-        self.stats_google = self.add("Stats geospatial view", "View statistics of all data in Google Maps",
-                                     self.on_view_stats_google_maps)
+        self.stats_google = self.add(
+            "Stats geospatial view",
+            "View statistics of all data in Google Maps",
+            self.on_view_stats_google_maps,
+        )
 
         if not self.all_geodata_loaded():
             self.stats_google.Enable(False)
@@ -164,7 +171,9 @@ class ViewSubsetMenu(Menu):
     def add(self, subset):
         callback = lambda evt, s=subset: self.on_view_subset(evt, s)
         channel = subset.get_channel()
-        ctrl = Menu.add(self, channel.get_title() + ": " + subset.get_title(), "", callback)
+        ctrl = Menu.add(
+            self, channel.get_title() + ": " + subset.get_title(), "", callback
+        )
         self.items[subset.get_key()] = ctrl
 
     def on_view_subset(self, event, subset=None):
@@ -186,7 +195,11 @@ class ViewSubsetMenu(Menu):
 
 class MapMenu(Menu):
     def create(self):
-        self.add("Import geospatial data", "Allows the import of location data.", self.on_import_geodata)
+        self.add(
+            "Import geospatial data",
+            "Allows the import of location data.",
+            self.on_import_geodata,
+        )
         self.google = self.add("View Google Maps", "", self.on_view_google)
         self.static = self.add("View static map", "", self.on_view_static)
 
@@ -211,9 +224,11 @@ class MapMenu(Menu):
         dts.ui.tabset.add_map()
 
 
-class OptionsMenu(Menu):	
+class OptionsMenu(Menu):
     def create(self):
-        self.add("Change colormap", "Change to a new colormap.", self.window.on_set_colormap)
+        self.add(
+            "Change colormap", "Change to a new colormap.", self.window.on_set_colormap
+        )
         self.timeformat = TimeFormatMenu(self, "Time format")
         if dts.DEBUG:
             self.AppendSeparator()
@@ -222,7 +237,11 @@ class OptionsMenu(Menu):
 
             self.debug.Check(True)
             self.log = LoggingMenu(self, "Logging level", id=12803)
-            self.widget = self.add("Start widget inspector", "View wxPython widget inspector.", self.on_widget_inspector)
+            self.widget = self.add(
+                "Start widget inspector",
+                "View wxPython widget inspector.",
+                self.on_widget_inspector,
+            )
             self.Enable(self.log.id, dts.DEBUG)
             self.widget.Enable(dts.DEBUG)
             self.Bind(wx.EVT_MENU, self.on_debug, id=self.debug.GetId())
@@ -247,13 +266,12 @@ class OptionsMenu(Menu):
 
 
 class LoggingMenu(Menu):
-
     def create(self):
-        critical = self.AppendRadioItem(-1, 'Critical')
-        error = self.AppendRadioItem(-1, 'Error')
-        warning = self.AppendRadioItem(-1, 'Warning')
-        info = self.AppendRadioItem(-1, 'Info')
-        debug = self.AppendRadioItem(-1, 'Debug')
+        critical = self.AppendRadioItem(-1, "Critical")
+        error = self.AppendRadioItem(-1, "Error")
+        warning = self.AppendRadioItem(-1, "Warning")
+        info = self.AppendRadioItem(-1, "Info")
+        debug = self.AppendRadioItem(-1, "Debug")
 
         self.Bind(wx.EVT_MENU, dts.logging.set_critical, id=critical.GetId())
         self.Bind(wx.EVT_MENU, dts.logging.set_error, id=error.GetId())
@@ -263,10 +281,9 @@ class LoggingMenu(Menu):
 
 
 class TimeFormatMenu(Menu):
-
     def create(self):
-        month_day = self.AppendRadioItem(-1, 'Month/Day')
-        julian = self.AppendRadioItem(-1, 'Julian Day')
+        month_day = self.AppendRadioItem(-1, "Month/Day")
+        julian = self.AppendRadioItem(-1, "Julian Day")
 
         self.Bind(wx.EVT_MENU, self.set_julian, id=julian.GetId())
         self.Bind(wx.EVT_MENU, self.set_monthday, id=month_day.GetId())
@@ -284,7 +301,11 @@ class TimeFormatMenu(Menu):
 
 class DebugMenu(Menu):
     def create(self):
-        self.add("Start widget inspector", "View wxPython widget inspector.", self.on_widget_inspector)
+        self.add(
+            "Start widget inspector",
+            "View wxPython widget inspector.",
+            self.on_widget_inspector,
+        )
 
     def on_widget_inspector(self, event):
         self.window.GetApplication().ShowInspectionTool()

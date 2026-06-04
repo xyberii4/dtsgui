@@ -1,5 +1,5 @@
 import h5py as hdf
-import io
+from . import io
 from dts.data.channel import Channel
 import logging as log
 
@@ -50,7 +50,7 @@ class DataFile:
 
     def __open_file(self, filename):
 
-        self.__hdf__ = hdf.File(filename)
+        self.__hdf__ = hdf.File(filename, mode='a')
         self.loaded = False
 
         self.channels = dict()

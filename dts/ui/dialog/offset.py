@@ -47,10 +47,10 @@ class OffsetDialog(wx.Dialog):
         return float(self.interval_ctrl.GetValue())
 
 
-class FloatValidator(wx.PyValidator):
+class FloatValidator(wx.Validator):
 
     def __init__(self):
-        wx.PyValidator.__init__(self)
+        wx.Validator.__init__(self)
 
     def Clone(self):
         return FloatValidator()

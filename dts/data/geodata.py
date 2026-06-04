@@ -76,6 +76,9 @@ class Geodata(object):
 
         interp_lengths = self.parent.data.get_dist_array(interval, offset)
 
+        if not self.loaded or self.raw is False:
+            return False
+
         c1 = np.interp(interp_lengths, self.raw['pos'], self.raw['north'], left=-200, right=-200)
         c2 = np.interp(interp_lengths, self.raw['pos'], self.raw['east'], left=-200, right=-200)
         data = np.vstack((interp_lengths, c1, c2))

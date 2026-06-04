@@ -13,7 +13,7 @@ class MapImage(Spatial):
         if self.filename is not None:
             self.__gdal__ = gdal.Open(filename)
 
-            if self.__gdal__.RasterCount is 3:
+            if self.__gdal__.RasterCount == 3:
                 self.color = True
 
             read = lambda n: self.__gdal__.GetRasterBand(n).ReadAsArray()

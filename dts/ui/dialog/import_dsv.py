@@ -40,80 +40,94 @@ Requires Python 2.0 or later
 Wizards tested with wxPython 2.2.5/NT 4.0, 2.3.2/Win2000 and Linux/GTK (RedHat 7, 8, 9)
 """
 
-__version__ = '1.4.1'
+__version__ = "1.4.1"
 
 # Changelog
 # 1.4.1:
-#	- Several small enhancements, requested by Danny Adair:
-#	  - pass record (line) number to errorHandler (importDSV)
-#		WARNING: this is an incompatible but trivial change.  User-defined
-#		error handlers must accomodate the new argument in their signature.
-#		See the demo at the bottom of this file for an example.
-#	  - optional newline specifier for exportDSV
-#	  - optional stripping of whitespace from data (importDSV)
-#	  - optional start, end arguments for importing portions of a file (importDSV)
+# - Several small enhancements, requested by Danny Adair:
+# - pass record (line) number to errorHandler (importDSV)
+# WARNING: this is an incompatible but trivial change.  User-defined
+# error handlers must accomodate the new argument in their signature.
+# See the demo at the bottom of this file for an example.
+# - optional newline specifier for exportDSV
+# - optional stripping of whitespace from data (importDSV)
+# - optional start, end arguments for importing portions of a file (importDSV)
 #
 # 1.4:
-#	- Fixed small bug in demo (forgotten Destroy()) that caused a hang
-#	  when Cancel was pressed.
-#	- Removed extraneous guessHeaders() call in wizard.	 I can only say,
-#	  "what the??" and remember to profile.	 This was a huge time waster.
+# - Fixed small bug in demo (forgotten Destroy()) that caused a hang
+# when Cancel was pressed.
+# - Removed extraneous guessHeaders() call in wizard.	 I can only say,
+# "what the??" and remember to profile.	 This was a huge time waster.
 #
 # 1.3.9
-#	- Fixed real problem on Win32 in that wxProgressDialog must reach max
-#	  value in order to close.
+# - Fixed real problem on Win32 in that wxProgressDialog must reach max
+# value in order to close.
 #
 # 1.3.8
-#	- Change demo to use wxApp rather than wxPySimpleApp as it seemed
-#	  to have problems on Win32 (per Kevin Altis)
+# - Change demo to use wxApp rather than wxPySimpleApp as it seemed
+# to have problems on Win32 (per Kevin Altis)
 #
 # 1.37
-#	- Fix for font issue under GTK2 (thanks to Ahmad Baitalmal)
-#	- Added some space below the Ok/Cancel buttons.
+# - Fix for font issue under GTK2 (thanks to Ahmad Baitalmal)
+# - Added some space below the Ok/Cancel buttons.
 #
 # 1.36
-#	- Bugfix submitted by "nobody" ;) on SF
+# - Bugfix submitted by "nobody" ;) on SF
 #
 # 1.3.4 to 1.3.5:
-#	- Nigel Hathaway finds yet another bug (or two).  Can't seem to make him
-#	  use something else, so they had to be fixed.	It's especially difficult
-#	  to ignore him since he provided the fix.	Very annoying.
-#	  - Problem with odd quote/delimiter combinations (SF bug #620284)
-#	  - Losing empty fields at beginning/end (#619771)
-#	  - Whitespace stripped from around string (#620115)
+# - Nigel Hathaway finds yet another bug (or two).  Can't seem to make him
+# use something else, so they had to be fixed.	It's especially difficult
+# to ignore him since he provided the fix.	Very annoying.
+# - Problem with odd quote/delimiter combinations (SF bug #620284)
+# - Losing empty fields at beginning/end (#619771)
+# - Whitespace stripped from around string (#620115)
 #
 # 1.3.3 to 1.3.4(a):
-#	- Fixed bug in exportDSV that failed to quote data containing delimiter
-#	  thanks to nhathaway@users.sourceforge.net
+# - Fixed bug in exportDSV that failed to quote data containing delimiter
+# thanks to nhathaway@users.sourceforge.net
 #
 # 1.3 to 1.3.1:
-#	- Test for presence of wxPython (since it's not required except for wizard)
-#	- Changed "from wxPython.wx import *" to "from wxPython import wx"
-#	- Changed sample csv file (darkwave.csv) to demonstrate embedded quotes
+# - Test for presence of wxPython (since it's not required except for wizard)
+# - Changed "from wxPython.wx import *" to "from wxPython import wx"
+# - Changed sample csv file (darkwave.csv) to demonstrate embedded quotes
 
 import sys
+
 # import pre as re # sre was broken, appears okay now. Try this if there are problems.
-import re 
+import re
 import copy
-import exceptions
-import string
+from functools import reduce
+
 # RedHat 8.0 (or rather GTK2?) sets LANG = en_us.UTF-8 and apparently some
 # older apps (including wxGTK) can't handle this.  The fix is to set LANG=C
 # before running the app.  Thanks to Ahmad Baitalmal for supplying this info.
 import os
-os.putenv('LANG', 'C')
+
+os.putenv("LANG", "C")
 
 try:
     import wx
     import wx.grid as grid
-    #from wxPython import wx, grid
+    # from wxPython import wx, grid
 except ImportError:
     wx = None
 
-class InvalidDelimiter(exceptions.StandardError): pass
-class InvalidTextQualifier(exceptions.StandardError): pass
-class InvalidData(exceptions.StandardError): pass
-class InvalidNumberOfColumns(exceptions.StandardError): pass
+
+class InvalidDelimiter(Exception):
+    pass
+
+
+class InvalidTextQualifier(Exception):
+    pass
+
+
+class InvalidData(Exception):
+    pass
+
+
+class InvalidNumberOfColumns(Exception):
+    pass
+
 
 # ------------------------------------------------------------------------------
 def guessTextQualifier(input):
@@ -132,30 +146,38 @@ def guessTextQualifier(input):
     # Algorithm: looks for text enclosed between two identical quotes (the probable
     # qualifier) which are preceded and followed by the same character (the
     # probable delimiter), for example:
-    #						 ,'some text',
+    # ,'some text',
     # The quote with the most wins.
 
-    data = input[:16 * 1024] # limit sample to 16k
+    data = input[: 16 * 1024]  # limit sample to 16k
 
-    regexp = re.compile('(?:(?:^|\n)(?P<b_quote>["\']).*?(?P=b_quote))|'
-                        '(?:(?P<delim>.)(?P<quote>["\']).*?(?P=quote)(?=(?P=delim)|\n))|'
-                        '(?:(?P<e_quote>["\']).*?(?P=e_quote)$)', re.M | re.S)
-    matches = filter(lambda i: reduce(lambda a, b: a + b, i), regexp.findall(data))
-    if not matches: return None
+    regexp = re.compile(
+        "(?:(?:^|\n)(?P<b_quote>[\"']).*?(?P=b_quote))|"
+        "(?:(?P<delim>.)(?P<quote>[\"']).*?(?P=quote)(?=(?P=delim)|\n))|"
+        "(?:(?P<e_quote>[\"']).*?(?P=e_quote)$)",
+        re.M | re.S,
+    )
+    matches = list(
+        filter(lambda i: reduce(lambda a, b: a + b, i), regexp.findall(data))
+    )
+    if not matches:
+        return None
 
     quotes = {}
-    for q in ('b_quote', 'quote', 'e_quote'):
+    for q in ("b_quote", "quote", "e_quote"):
         n = regexp.groupindex[q] - 1
         for m in matches:
             key = m[n]
             if key:
                 quotes[key] = quotes.get(key, 0) + 1
 
-    return reduce(lambda a, b, quotes = quotes:
-                  (quotes[a] > quotes[b]) and a or b, quotes.keys())
+    return reduce(
+        lambda a, b, quotes=quotes: (quotes[a] > quotes[b]) and a or b, quotes.keys()
+    )
+
 
 # ------------------------------------------------------------------------------
-def guessDelimiter(input, textQualifier = '"'):
+def guessDelimiter(input, textQualifier='"'):
     """
     PROTOTYPE:
       guessDelimiter(input, textQualifier = '\"')
@@ -173,26 +195,28 @@ def guessDelimiter(input, textQualifier = '"'):
     # nothing approach, so we allow for small variations in the number.
     # 1) build a table of the frequency of each character on every line.
     # 2) build a table of freqencies of this frequency (meta-frequency?), e.g.
-    #	  "x occurred 5 times in 10 rows, 6 times in 1000 rows, 7 times in 2 rows"
+    # "x occurred 5 times in 10 rows, 6 times in 1000 rows, 7 times in 2 rows"
     # 3) use the mode of the meta-frequency to decide what the frequency /should/
-    #	 be for that character
+    # be for that character
     # 4) find out how often the character actually meets that goal
     # 5) the character that best meets its goal is the delimiter
     # For performance reasons, the data is evaluated in chunks, so it can try
     # and evaluate the smallest portion of the data possible, evaluating additional
     # chunks as necessary.
 
-    if type(input) != type([]): return None
-    if len(input) < 2: return None
+    if type(input) != type([]):
+        return None
+    if len(input) < 2:
+        return None
 
     if textQualifier:
         # eliminate text inside textQualifiers
-        regexp = re.compile('%s(.*?)%s' % (textQualifier, textQualifier), re.S)
-        subCode = compile("regexp.sub('', line)", '', 'eval')
+        regexp = re.compile("%s(.*?)%s" % (textQualifier, textQualifier), re.S)
+        subCode = compile("regexp.sub('', line)", "", "eval")
     else:
-        subCode = compile("line", '', 'eval')
+        subCode = compile("line", "", "eval")
 
-    ascii = [chr(c) for c in range(127)] # 7-bit ASCII
+    ascii = [chr(c) for c in range(127)]  # 7-bit ASCII
 
     # build frequency tables
     chunkLength = min(10, len(input))
@@ -207,65 +231,72 @@ def guessDelimiter(input, textQualifier = '"'):
             l = eval(subCode)
             for char in ascii:
                 metafrequency = charFrequency.get(char, {})
-                freq = l.strip().count(char) # must count even if frequency is 0
-                metafrequency[freq] = metafrequency.get(freq, 0) + 1 # value is the mode
+                freq = l.strip().count(char)  # must count even if frequency is 0
+                metafrequency[freq] = (
+                    metafrequency.get(freq, 0) + 1
+                )  # value is the mode
                 charFrequency[char] = metafrequency
 
         for char in charFrequency.keys():
-            items = charFrequency[char].items()
-            if len(items) == 1 and items[0][0] == 0: continue
+            items = list(charFrequency[char].items())
+            if len(items) == 1 and items[0][0] == 0:
+                continue
             # get the mode of the frequencies
             if len(items) > 1:
                 modes[char] = reduce(lambda a, b: a[1] > b[1] and a or b, items)
                 # adjust the mode - subtract the sum of all other frequencies
                 items.remove(modes[char])
-                modes[char] = (modes[char][0], modes[char][1]
-                               - reduce(lambda a, b: (0, a[1] + b[1]), items)[1])
+                modes[char] = (
+                    modes[char][0],
+                    modes[char][1] - reduce(lambda a, b: (0, a[1] + b[1]), items)[1],
+                )
             else:
                 modes[char] = items[0]
 
         # build a list of possible delimiters
-        modeList = modes.items()
+        modeList = list(modes.items())
         total = float(chunkLength * iteration)
-        consistency = 1.0 # (rows of consistent data) / (number of rows) = 100%
-        threshold = 0.9	 # minimum consistency threshold
+        consistency = 1.0  # (rows of consistent data) / (number of rows) = 100%
+        threshold = 0.9  # minimum consistency threshold
         while len(delims) == 0 and consistency >= threshold:
             for k, v in modeList:
                 if v[0] > 0 and v[1] > 0:
-                    if (v[1]/total) >= consistency:
+                    if (v[1] / total) >= consistency:
                         delims[k] = v
             consistency -= 0.01
 
         if len(delims) == 1:
-            return delims.keys()[0]
+            return list(delims.keys())[0]
 
         # analyze another chunkLength lines
         start = end
         end += chunkLength
 
-    if not delims: return None
+    if not delims:
+        return None
 
     # if there's more than one candidate, look at quoted data for clues.
     # while any character may be quoted, any delimiter that occurs as a
     # part of the data /must/ be quoted.
     if len(delims) > 1 and textQualifier is not None:
-        regexp = re.compile('%s(.*?)%s' % (textQualifier, textQualifier), re.S)
+        regexp = re.compile("%s(.*?)%s" % (textQualifier, textQualifier), re.S)
         for line in input:
             inQuotes = "".join(regexp.findall(line))
             for d in delims.keys():
                 if not d in inQuotes:
                     del delims[d]
                 if len(delims) == 1:
-                    return delims.keys()[0]
+                    return list(delims.keys())[0]
 
     # if there's *still* more than one, fall back to a 'preferred' list
     if len(delims) > 1:
-        for d in ['\t', ',', ';', ' ', ':']:
+        for d in ["\t", ",", ";", " ", ":"]:
             if d in delims.keys():
                 return d
 
     # finally, just return the first damn character in the list
-    return delims.keys()[0]
+    return list(delims.keys())[0]
+
 
 # ------------------------------------------------------------------------------
 def modeOfLengths(input):
@@ -284,10 +315,11 @@ def modeOfLengths(input):
         l = len(row)
         freq[l] = freq.get(l, 0) + 1
 
-    return reduce(lambda a, b, freq = freq: (freq[a] > freq[b]) and a or b, freq.keys())
+    return reduce(lambda a, b, freq=freq: (freq[a] > freq[b]) and a or b, freq.keys())
+
 
 # ------------------------------------------------------------------------------
-def guessHeaders(input, columns = 0):
+def guessHeaders(input, columns=0):
     """
     PROTOTYPE:
       guessHeaders(input, columns = 0)
@@ -308,18 +340,21 @@ def guessHeaders(input, columns = 0):
     # Finally, a 'vote' is taken at the end for each column, adding or subtracting from
     # the likelihood of the first row being a header.
 
-    if type(input) != type([]): raise InvalidData, "list expected."
-    if len(input) < 2: return 0
+    if type(input) != type([]):
+        raise InvalidData("list expected.")
+    if len(input) < 2:
+        return 0
 
     if not columns:
         columns = modeOfLengths(input)
 
     columnTypes = {}
-    for i in range(columns): columnTypes[i] = None
+    for i in range(columns):
+        columnTypes[i] = None
 
     for row in input[1:]:
         if len(row) != columns:
-            continue # skip rows that have irregular number of columns
+            continue  # skip rows that have irregular number of columns
         for col in columnTypes.keys():
             try:
                 try:
@@ -327,27 +362,27 @@ def guessHeaders(input, columns = 0):
                     thisType = type(eval(row[col]))
                 except OverflowError:
                     # a long int?
-                    thisType = type(eval(row[col] + 'L'))
-                    thisType = type(0) # treat long ints as int
+                    thisType = type(eval(row[col] + "L"))
+                    thisType = type(0)  # treat long ints as int
             except:
                 # fallback to length of string
                 thisType = len(row[col])
 
             if thisType != columnTypes[col]:
-                if columnTypes[col] is None: # add new column type
+                if columnTypes[col] is None:  # add new column type
                     columnTypes[col] = thisType
-                else: # type is inconsistent, remove column from consideration
+                else:  # type is inconsistent, remove column from consideration
                     del columnTypes[col]
 
     # finally, compare results against first row and vote on whether it's a header
     hasHeader = 0
     for col, colType in columnTypes.items():
-        if type(colType) == type(0): # it's a length
+        if type(colType) == type(0):  # it's a length
             if len(input[0][col]) != colType:
                 hasHeader += 1
             else:
                 hasHeader -= 1
-        else: # attempt typecast
+        else:  # attempt typecast
             try:
                 eval("%s(%s)" % (colType.__name__, input[0][col]))
             except:
@@ -357,8 +392,9 @@ def guessHeaders(input, columns = 0):
 
     return hasHeader > 0
 
+
 # ------------------------------------------------------------------------------
-def organizeIntoLines(input, textQualifier = '"', limit = None):
+def organizeIntoLines(input, textQualifier='"', limit=None):
     """
     PROTOTYPE:
       organizeIntoLines(input, textQualifier = '\"', limit = None)
@@ -378,24 +414,25 @@ def organizeIntoLines(input, textQualifier = '"', limit = None):
     # If there isn't, that means that the newline at the end of the line must occur
     # within qualifiers and doesn't really indicate the end of a record.
 
-    data = input.split('\n')
+    data = input.split("\n")
     line = 0
     while 1:
         try:
-            while data[line].count(textQualifier) % 2: # while odd number
-                data[line] = data[line] + '\n' + data[line + 1] # add the next line
-                del data[line + 1] # delete the next line
+            while data[line].count(textQualifier) % 2:  # while odd number
+                data[line] = data[line] + "\n" + data[line + 1]  # add the next line
+                del data[line + 1]  # delete the next line
             line += 1
             if limit and line > limit:
-                del data[limit:] # kill any lines that weren't processed
+                del data[limit:]  # kill any lines that weren't processed
                 break
         except:
             break
 
     # filter out empty lines
     # data = filter(lambda i: "".join(i), data)
-    data = filter(string.join, data)
+    data = [d for d in data if d.strip()]
     return data
+
 
 # ------------------------------------------------------------------------------
 # some common error handlers to pass to importDSV
@@ -404,20 +441,31 @@ def organizeIntoLines(input, textQualifier = '"', limit = None):
 def padRow(linenumber, oldrow, newrow, columns, maxColumns):
     "pads all rows to the same length with empty strings"
     difference = maxColumns - len(newrow)
-    return newrow + ([''] * difference)
+    return newrow + ([""] * difference)
+
 
 def skipRow(linenumber, oldrow, newrow, columns, maxColumns):
     "skips any inconsistent rows"
     return None
 
+
 def useRow(linenumber, oldrow, newrow, columns, maxColumns):
     "returns row unchanged"
     return newrow
 
+
 # ------------------------------------------------------------------------------
-def importDSV(input, delimiter = ',', textQualifier = '"', columns = 0,
-              updateFunction = None, errorHandler = None,
-              startline = 0, endline = None, stripall = 0):
+def importDSV(
+    input,
+    delimiter=",",
+    textQualifier='"',
+    columns=0,
+    updateFunction=None,
+    errorHandler=None,
+    startline=0,
+    endline=None,
+    stripall=0,
+):
     """
     PROTOTYPE:
       importDSV(input, delimiter = ',', textQualifier = '\"', columns = 0,
@@ -449,19 +497,19 @@ def importDSV(input, delimiter = ',', textQualifier = '"', columns = 0,
       list of lists of data
     """
     if type(input) != type([]):
-        raise InvalidData, "expected list of lists of strings"
-    if type(delimiter) != type('') or not delimiter:
-        raise InvalidDelimiter, `delimiter`
+        raise InvalidData("expected list of lists of strings")
+    if type(delimiter) != type("") or not delimiter:
+        raise InvalidDelimiter(repr(delimiter))
 
-##	  if textQualifier:
-##		  # fieldRex=re.compile('(?:(?:[,]|^)"(.*?)"(?=[,]|$))|(?:(?:[,]|^)([^",]*?)(?=[,]|$))')
-##		  fieldRex = re.compile('(?:(?:[%s]|^)%s(.*?)%s(?=[%s]|$))|(?:(?:[%s]|^)([^%s%s]*?)(?=[%s]|$))'
-##								% (delimiter, textQualifier, textQualifier, delimiter,
-##								   delimiter, textQualifier, delimiter, delimiter),
-##								re.S)
-##	  else:
-##		  fieldRex = re.compile('(?:[%s]|^)([^%s]*?)(?=[%s]|$)'
-##								% (delimiter, delimiter, delimiter), re.S)
+    ##	  if textQualifier:
+    ##		  # fieldRex=re.compile('(?:(?:[,]|^)"(.*?)"(?=[,]|$))|(?:(?:[,]|^)([^",]*?)(?=[,]|$))')
+    ##		  fieldRex = re.compile('(?:(?:[%s]|^)%s(.*?)%s(?=[%s]|$))|(?:(?:[%s]|^)([^%s%s]*?)(?=[%s]|$))'
+    ##								% (delimiter, textQualifier, textQualifier, delimiter,
+    ##								   delimiter, textQualifier, delimiter, delimiter),
+    ##								re.S)
+    ##	  else:
+    ##		  fieldRex = re.compile('(?:[%s]|^)([^%s]*?)(?=[%s]|$)'
+    ##								% (delimiter, delimiter, delimiter), re.S)
 
     if startline is not None:  # 1.4.1
         input = input[startline:]
@@ -473,16 +521,16 @@ def importDSV(input, delimiter = ',', textQualifier = '"', columns = 0,
     newdata = []
     maxColumns = 0
 
-##	  for line in input:
-##		  line = line.strip()
-##		  record = fieldRex.findall(line)
-##		  print record
-##		  if textQualifier:
-##			  record = [(i[0] or i[1]) for i in record]
+    ##	  for line in input:
+    ##		  line = line.strip()
+    ##		  record = fieldRex.findall(line)
+    ##		  print record
+    ##		  if textQualifier:
+    ##			  record = [(i[0] or i[1]) for i in record]
 
-##		  if textQualifier:
-##			  record = [c.replace(textQualifier * 2, textQualifier) for c in record]
-##		  newdata.append(record)
+    ##		  if textQualifier:
+    ##			  record = [c.replace(textQualifier * 2, textQualifier) for c in record]
+    ##		  newdata.append(record)
 
     # This code was submitted by Nigel to replace the code commented out above.
     # It addresses several issues with embedded quotes and delimiters.	It seems that
@@ -497,31 +545,37 @@ def importDSV(input, delimiter = ',', textQualifier = '"', columns = 0,
             for s in line.split(delimiter):
                 odd = s.count(textQualifier) % 2
                 if inquotes:
-                    accu += delimiter + s.replace(textQualifier * 2, delimiter).\
-                            replace(textQualifier, '').replace(delimiter, textQualifier)
+                    accu += delimiter + s.replace(textQualifier * 2, delimiter).replace(
+                        textQualifier, ""
+                    ).replace(delimiter, textQualifier)
                     if odd:
                         record.append(accu)
                         inquotes = 0
                 else:
                     # 1.3.6 bugfix: deal with case where s = "" to denote an empty string
-                    if s.count(textQualifier): # discard whitespace outside of textQualifiers when they are used
+                    if s.count(
+                        textQualifier
+                    ):  # discard whitespace outside of textQualifiers when they are used
                         s = s.strip()
                     # fix new problem with ""
                     if s == textQualifier * 2:
                         s = ""
 
-                    accu = s.replace(textQualifier * 2, delimiter).\
-                           replace(textQualifier, '').replace(delimiter, textQualifier)
+                    accu = (
+                        s.replace(textQualifier * 2, delimiter)
+                        .replace(textQualifier, "")
+                        .replace(delimiter, textQualifier)
+                    )
                     if odd:
                         inquotes = 1
                     else:
                         record.append(accu)
         else:
-            #record = map(lambda x: x.strip(), line.split(delimiter))
-            record = map(string.strip, line.split(delimiter))
+            # record = map(lambda x: x.strip(), line.split(delimiter))
+            record = list(map(str.strip, line.split(delimiter)))
 
-        if stripall: # 1.4.1
-            record = map(string.strip, record)
+        if stripall:  # 1.4.1
+            record = list(map(str.strip, record))
 
         newdata.append(record)
         # (end of replacement code)
@@ -539,24 +593,26 @@ def importDSV(input, delimiter = ',', textQualifier = '"', columns = 0,
     maxColumns = max([len(line) for line in newdata])
 
     # consistency check
-    for record in xrange(len(newdata)):
+    for record in range(len(newdata)):
         length = len(newdata[record])
         difference = length - columns
         if difference:
             if errorHandler is None:
-                raise InvalidNumberOfColumns, "Expected %d, got %d" % (columns, length)
+                raise InvalidNumberOfColumns("Expected %d, got %d" % (columns, length))
             else:
-                newdata[record] = errorHandler(record, input[record], newdata[record], columns, maxColumns)
+                newdata[record] = errorHandler(
+                    record, input[record], newdata[record], columns, maxColumns
+                )
 
     # remove null values from data
     # newdata = filter(lambda i: i, newdata)
-    newdata = filter(None, newdata)
+    newdata = list(filter(None, newdata))
 
     return newdata
 
 
 # ------------------------------------------------------------------------------
-def exportDSV(input, delimiter = ',', textQualifier = '"', quoteall = 0, newline = '\n'):
+def exportDSV(input, delimiter=",", textQualifier='"', quoteall=0, newline="\n"):
     """
     PROTOTYPE:
       exportDSV(input, delimiter = ',', textQualifier = '\"', quoteall = 0)
@@ -572,23 +628,47 @@ def exportDSV(input, delimiter = ',', textQualifier = '"', quoteall = 0, newline
     RETURNS:
       data as string
     """
-    if not delimiter or type(delimiter) != type(''): raise InvalidDelimiter
-    if not textQualifier or type(delimiter) != type(''): raise InvalidTextQualifier
+    if not delimiter or type(delimiter) != type(""):
+        raise InvalidDelimiter()
+    if not textQualifier or type(delimiter) != type(""):
+        raise InvalidTextQualifier()
 
     # double-up all text qualifiers in data (i.e. can't becomes can''t)
-    data = map(lambda i, q = textQualifier:
-               map(lambda j, q = q: str(j).replace(q, q * 2), i),
-               input)
+    data = list(
+        map(
+            lambda i, q=textQualifier: list(
+                map(lambda j, q=q: str(j).replace(q, q * 2), i)
+            ),
+            input,
+        )
+    )
 
-    if quoteall: # quote every data value
-        data = map(lambda i, q = textQualifier:
-                   map(lambda j, q = q: q + j + q, i),
-                   data)
-    else: # quote only the values that contain qualifiers, delimiters or newlines
-        data = map(lambda i, q = textQualifier, d = delimiter:
-                   map(lambda j, q = q, d = d: ((j.find(q) != -1 or j.find(d) != -1
-                                          or j.find('\n') != -1)
-                                         and (q + j + q)) or j, i), data)
+    if quoteall:  # quote every data value
+        data = list(
+            map(lambda i, q=textQualifier: list(map(lambda j, q=q: q + j + q, i)), data)
+        )
+    else:  # quote only the values that contain qualifiers, delimiters or newlines
+        data = list(
+            map(
+                lambda i, q=textQualifier, d=delimiter: list(
+                    map(
+                        lambda j, q=q, d=d: (
+                            (
+                                (
+                                    j.find(q) != -1
+                                    or j.find(d) != -1
+                                    or j.find("\n") != -1
+                                )
+                                and (q + j + q)
+                            )
+                            or j
+                        ),
+                        i,
+                    )
+                ),
+                data,
+            )
+        )
     # assemble each line with delimiters
     data = [delimiter.join(line) for line in data]
 
@@ -596,9 +676,10 @@ def exportDSV(input, delimiter = ',', textQualifier = '"', quoteall = 0, newline
     data = newline.join(data)
     return data
 
+
 if wx is not None:
     # ------------------------------------------------------------------------------
-    class ImportWizardPanel_Delimiters(wx.Panel): #change DQ
+    class ImportWizardPanel_Delimiters(wx.Panel):  # change DQ
         """
         CLASS(SUPERCLASS):
           ImportWizardPanel_Delimiters(wx.Panel)
@@ -630,9 +711,20 @@ if wx is not None:
             returns true if first row is header
         """
 
-        def __init__(self, parent, id, file, data, isValidCallback = None,
-                     pos = wx.DefaultPosition, size = wx.DefaultSize,
-                     style = wx.TAB_TRAVERSAL, name = "ImportWizardPanel", field_choices=None, meta_fields=None):
+        def __init__(
+            self,
+            parent,
+            id,
+            file,
+            data,
+            isValidCallback=None,
+            pos=wx.DefaultPosition,
+            size=wx.DefaultSize,
+            style=wx.TAB_TRAVERSAL,
+            name="ImportWizardPanel",
+            field_choices=None,
+            meta_fields=None,
+        ):
             wx.Panel.__init__(self, parent, id, pos, size, style, name)
             self.SetAutoLayout(True)
             mainSizer = wx.FlexGridSizer(4, 1)
@@ -645,24 +737,28 @@ if wx is not None:
             self.isValidCallback = isValidCallback
             self.Validate = (isValidCallback and self.Validate) or self.BuildPreview
 
-            dlg = wx.ProgressDialog("Import Wizard",
-                                   "Analyzing %s... Please wait." % file,
-                                   3,
-                                   parent,
-                                   wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
+            dlg = wx.ProgressDialog(
+                "Import Wizard",
+                "Analyzing %s... Please wait." % file,
+                3,
+                parent,
+                wx.PD_APP_MODAL | wx.PD_AUTO_HIDE,
+            )
             textQualifier = guessTextQualifier(data)
             dlg.Update(1)
-            newdata = organizeIntoLines(data, textQualifier = textQualifier, limit = 100)
+            newdata = organizeIntoLines(data, textQualifier=textQualifier, limit=100)
             dlg.Update(2)
-            delimiter = guessDelimiter(newdata, textQualifier = textQualifier)
+            delimiter = guessDelimiter(newdata, textQualifier=textQualifier)
             dlg.Update(3)
             dlg.Destroy()
 
             # -------------
-            msg = ("This screen lets you set the delimiters your data contains.\n"
-                   "You can see how your data is affected in the preview below.\n"
-                   "The field titles drop down to allow the selection of either\n"
-                   "UTM or geographic coordinate systems.")
+            msg = (
+                "This screen lets you set the delimiters your data contains.\n"
+                "You can see how your data is affected in the preview below.\n"
+                "The field titles drop down to allow the selection of either\n"
+                "UTM or geographic coordinate systems."
+            )
             message1 = wx.StaticText(self, -1, msg)
 
             # -------------
@@ -672,11 +768,11 @@ if wx is not None:
             delimGridSizer = wx.FlexGridSizer(2, 3)
 
             delims = {
-                'Tab':		 '\t',
-                'Semicolon': ';',
-                'Comma':	 ',',
-                'Space':	 ' ',
-                }
+                "Tab": "\t",
+                "Semicolon": ";",
+                "Comma": ",",
+                "Space": " ",
+            }
 
             self.delimChecks = {}
 
@@ -687,50 +783,69 @@ if wx is not None:
 
             otherSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-            self.delimChecks['Other'] = wx.CheckBox(self, -1, 'Other:')
-            wx.EVT_CHECKBOX(self, self.delimChecks['Other'].GetId(), self.Validate)
+            self.delimChecks["Other"] = wx.CheckBox(self, -1, "Other:")
+            wx.EVT_CHECKBOX(self, self.delimChecks["Other"].GetId(), self.Validate)
 
-            self.otherDelim = wx.TextCtrl(self, -1, size = (20, -1))
+            self.otherDelim = wx.TextCtrl(self, -1, size=(20, -1))
             wx.EVT_TEXT(self, self.otherDelim.GetId(), self.OnCustomDelim)
 
-            if self.delimChecks.has_key(delimiter):
+            if delimiter in self.delimChecks:
                 self.delimChecks[delimiter].SetValue(True)
             elif delimiter is not None:
-                self.delimChecks['Other'].SetValue(True)
+                self.delimChecks["Other"].SetValue(True)
                 self.otherDelim.SetValue(delimiter)
 
-            otherSizer.AddMany([
-                (self.delimChecks['Other'], 0, wx.ALL, 3),
-                (self.otherDelim, 0, wx.ALIGN_CENTER),
-                ])
+            otherSizer.AddMany(
+                [
+                    (self.delimChecks["Other"], 0, wx.ALL, 3),
+                    (self.otherDelim, 0, wx.ALIGN_CENTER),
+                ]
+            )
 
             delimGridSizer.Add(otherSizer)
             delimStaticSizer.Add(delimGridSizer, 1, wx.EXPAND)
             delimOtherSizer = wx.BoxSizer(wx.VERTICAL)
-            self.consecutiveDelimsAs1 = wx.CheckBox(self, -1, "Treat consecutive delimiters as one")
+            self.consecutiveDelimsAs1 = wx.CheckBox(
+                self, -1, "Treat consecutive delimiters as one"
+            )
             self.consecutiveDelimsAs1.Enable(False)
             tqSizer = wx.BoxSizer(wx.HORIZONTAL)
-            self.textQualifierChoice = wx.Choice(self, -1, choices = ['"', "'", "{None}"])
+            self.textQualifierChoice = wx.Choice(self, -1, choices=['"', "'", "{None}"])
             wx.EVT_CHOICE(self, self.textQualifierChoice.GetId(), self.BuildPreview)
             if textQualifier is not None:
                 self.textQualifierChoice.SetStringSelection(textQualifier)
             else:
-                self.textQualifierChoice.SetStringSelection('{None}')
+                self.textQualifierChoice.SetStringSelection("{None}")
 
-            tqSizer.AddMany([
-                (wx.StaticText(self, -1, "Text qualifier:"), 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL),
-                (self.textQualifierChoice, 0, wx.ALL | wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL, 5),
-                ])
+            tqSizer.AddMany(
+                [
+                    (
+                        wx.StaticText(self, -1, "Text qualifier:"),
+                        0,
+                        wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                    ),
+                    (
+                        self.textQualifierChoice,
+                        0,
+                        wx.ALL | wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL,
+                        5,
+                    ),
+                ]
+            )
 
-            delimOtherSizer.AddMany([
-                (self.consecutiveDelimsAs1, 1, wx.EXPAND | wx.ALL, 5),
-                (tqSizer, 1, wx.ALL | wx.ALIGN_CENTER, 5),
-                ])
+            delimOtherSizer.AddMany(
+                [
+                    (self.consecutiveDelimsAs1, 1, wx.EXPAND | wx.ALL, 5),
+                    (tqSizer, 1, wx.ALL | wx.ALIGN_CENTER, 5),
+                ]
+            )
 
-            delimiterBox.AddMany([
-                (delimStaticSizer, 0, wx.ALIGN_CENTER),
-                (delimOtherSizer,  0, wx.ALIGN_CENTER),
-                ])
+            delimiterBox.AddMany(
+                [
+                    (delimStaticSizer, 0, wx.ALIGN_CENTER),
+                    (delimOtherSizer, 0, wx.ALIGN_CENTER),
+                ]
+            )
 
             delimStaticBox.Fit()
 
@@ -740,38 +855,70 @@ if wx is not None:
             self.hasHeaderRow = wx.CheckBox(self, -1, "First row is header")
             wx.EVT_CHECKBOX(self, self.hasHeaderRow.GetId(), self.BuildPreview)
 
-            if wx.Platform in ('__wx.GTK__', '__wx.MSW__'):
+            if wx.Platform in ("__wx.GTK__", "__wx.MSW__"):
                 # wx.SpinCtrl causes seg fault under GTK when <enter> is hit in text - use wx.SpinButton instead
-                self.previewRowsText = wx.TextCtrl(self, -1, str(self.displayRows),
-                                                  size = (30, -1), style = wx.TE_PROCESS_ENTER)
+                self.previewRowsText = wx.TextCtrl(
+                    self,
+                    -1,
+                    str(self.displayRows),
+                    size=(30, -1),
+                    style=wx.TE_PROCESS_ENTER,
+                )
                 h = self.previewRowsText.GetSize().height
-                self.previewRows = wx.SpinButton(self, -1, size = (-1, h), style = wx.SP_VERTICAL)
+                self.previewRows = wx.SpinButton(
+                    self, -1, size=(-1, h), style=wx.SP_VERTICAL
+                )
                 self.previewRows.SetRange(self.displayRows, 100)
                 self.previewRows.SetValue(self.displayRows)
                 wx.EVT_SPIN(self, self.previewRows.GetId(), self.OnSpinPreviewRows)
-                wx.EVT_TEXT_ENTER(self, self.previewRowsText.GetId(), self.OnTextPreviewRows)
+                wx.EVT_TEXT_ENTER(
+                    self, self.previewRowsText.GetId(), self.OnTextPreviewRows
+                )
             else:
-                self.previewRows = wx.SpinCtrl(self, -1, str(self.displayRows),
-                                              min = self.displayRows, max = 100, size = (50, -1))
+                self.previewRows = wx.SpinCtrl(
+                    self,
+                    -1,
+                    str(self.displayRows),
+                    min=self.displayRows,
+                    max=100,
+                    size=(50, -1),
+                )
                 wx.EVT_SPINCTRL(self, self.previewRows.GetId(), self.BuildPreview)
 
-            previewSettingsBox.AddMany([
-                (self.hasHeaderRow, 1, wx.ALL | wx.EXPAND, 5),
-                (wx.StaticText(self, -1, "Preview"), 0, wx.WEST | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 10),
-                ])
-            if wx.Platform in ('__wx.GTK__', '__wx.MSW__'):
-                previewSettingsBox.Add(self.previewRowsText, 0, wx.ALIGN_CENTER | wx.ALL, 3)
-            previewSettingsBox.AddMany([
-                (self.previewRows, 0, wx.ALIGN_CENTER | wx.ALL, 3),
-                (wx.StaticText(self, -1, "rows"), 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL),
-                ])
+            previewSettingsBox.AddMany(
+                [
+                    (self.hasHeaderRow, 1, wx.ALL | wx.EXPAND, 5),
+                    (
+                        wx.StaticText(self, -1, "Preview"),
+                        0,
+                        wx.WEST | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        10,
+                    ),
+                ]
+            )
+            if wx.Platform in ("__wx.GTK__", "__wx.MSW__"):
+                previewSettingsBox.Add(
+                    self.previewRowsText, 0, wx.ALIGN_CENTER | wx.ALL, 3
+                )
+            previewSettingsBox.AddMany(
+                [
+                    (self.previewRows, 0, wx.ALIGN_CENTER | wx.ALL, 3),
+                    (
+                        wx.StaticText(self, -1, "rows"),
+                        0,
+                        wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                    ),
+                ]
+            )
 
             # -------------
             if delimiter is not None:
-                previewData = importDSV(newdata[:self.displayRows],
-                                        textQualifier = textQualifier,
-                                        delimiter = delimiter,
-                                        errorHandler = padRow)
+                previewData = importDSV(
+                    newdata[: self.displayRows],
+                    textQualifier=textQualifier,
+                    delimiter=delimiter,
+                    errorHandler=padRow,
+                )
                 hasHeaders = guessHeaders(previewData)
                 self.hasHeaderRow.SetValue(hasHeaders)
 
@@ -802,74 +949,93 @@ if wx is not None:
             previewStaticSizer.Add(self.preview, 0, wx.ALL | wx.EXPAND, 5)
 
             # -------------
-            mainSizer.AddMany([
-                (message1,	   0, wx.ALL, 5),
-                (delimiterBox, 0, wx.ALL, 5),
-                (previewSettingsBox, 0, wx.ALL, 5),
-                (previewStaticSizer, 0, wx.ALL | wx.EXPAND, 5),
-                ])
+            mainSizer.AddMany(
+                [
+                    (message1, 0, wx.ALL, 5),
+                    (delimiterBox, 0, wx.ALL, 5),
+                    (previewSettingsBox, 0, wx.ALL, 5),
+                    (previewStaticSizer, 0, wx.ALL | wx.EXPAND, 5),
+                ]
+            )
 
             self.Layout()
             self.Fit()
 
         def add_data_fields(self):
-            '''Adds fields to the dialog that will be shown above data preview and correspond to metadata quantities needed for the dataset.'''
+            """Adds fields to the dialog that will be shown above data preview and correspond to metadata quantities needed for the dataset."""
 
         def OnSpinPreviewRows(self, event):
             self.previewRowsText.SetValue(str(event.GetPosition()))
             self.BuildPreview()
-            try:	event.Skip()
-            except:	pass
+            try:
+                event.Skip()
+            except:
+                pass
 
         def OnTextPreviewRows(self, event):
-            try:	v = int(self.previewRowsText.GetValue())
-            except: v = self.displayRows
+            try:
+                v = int(self.previewRowsText.GetValue())
+            except:
+                v = self.displayRows
             v = max(self.displayRows, v)
             v = min(v, 100)
             self.previewRowsText.SetValue(str(v))
             self.previewRows.SetValue(v)
             self.BuildPreview()
-            try:	event.Skip()
-            except:	pass
+            try:
+                event.Skip()
+            except:
+                pass
 
-        def Validate(self, event = None):
-            hasDelimiter = reduce(lambda a, b: a + b, [cb.GetValue() for cb in self.delimChecks.values()])
-            if hasDelimiter == 1 and self.delimChecks['Other'].GetValue():
+        def Validate(self, event=None):
+            hasDelimiter = reduce(
+                lambda a, b: a + b, [cb.GetValue() for cb in self.delimChecks.values()]
+            )
+            if hasDelimiter == 1 and self.delimChecks["Other"].GetValue():
                 hasDelimiter = self.otherDelim.GetValue() != ""
             self.BuildPreview()
             self.isValidCallback(hasDelimiter)
-            try:	event.Skip()
-            except:	pass
+            try:
+                event.Skip()
+            except:
+                pass
 
-        def BuildPreview(self, event = None):
+        def BuildPreview(self, event=None):
             if not self.initialized:
-                return # got triggered before initialization was completed
+                return  # got triggered before initialization was completed
 
-            if wx.Platform != '__wx.GTK__':
-                wx.BeginBusyCursor() # causes a spurious spin event under GTK
-            wx.Yield() # allow controls to update first, in case of slow preview
+            if wx.Platform != "__wx.GTK__":
+                wx.BeginBusyCursor()  # causes a spurious spin event under GTK
+            wx.Yield()  # allow controls to update first, in case of slow preview
             self.preview.BeginBatch()
             self.preview.DeleteCols(0, self.preview.GetNumberCols())
             self.preview.DeleteRows(0, self.preview.GetNumberRows())
             self.preview.ClearGrid()
 
             textQualifier = self.textQualifierChoice.GetStringSelection()
-            if textQualifier == '{None}': textQualifier = None
+            if textQualifier == "{None}":
+                textQualifier = None
             other = self.otherDelim.GetValue()
-            delimiter = map(lambda i, other = other: i[0] != 'Other' and i[0] or other,
-                            filter(lambda i: i[1].GetValue(), self.delimChecks.items()))
+            delimiter = list(
+                map(
+                    lambda i, other=other: i[0] != "Other" and i[0] or other,
+                    list(filter(lambda i: i[1].GetValue(), self.delimChecks.items())),
+                )
+            )
             delimiter = "".join(delimiter)
 
             rows = self.previewRows.GetValue()
 
-            newdata = organizeIntoLines(self.data, textQualifier, limit = rows)
+            newdata = organizeIntoLines(self.data, textQualifier, limit=rows)
             try:
-                previewData = importDSV(newdata[:rows],
-                                        textQualifier = textQualifier,
-                                        delimiter = delimiter,
-                                        errorHandler = padRow)
-            except InvalidDelimiter, e:
-                previewData = map(lambda i: [i], newdata[:rows])
+                previewData = importDSV(
+                    newdata[:rows],
+                    textQualifier=textQualifier,
+                    delimiter=delimiter,
+                    errorHandler=padRow,
+                )
+            except InvalidDelimiter:
+                previewData = list(map(lambda i: [i], newdata[:rows]))
 
             rows = min(rows, len(previewData))
             hasHeaders = self.hasHeaderRow.GetValue()
@@ -880,35 +1046,43 @@ if wx is not None:
             if hasHeaders:
                 self.preview.SetColLabelSize(self.preview.GetRowSize(0))
                 for col in range(cols):
-                    try:	self.preview.SetColLabelValue(col, str(previewData[0][col]))
-                    except: self.preview.SetColLabelValue(col, "")
+                    try:
+                        self.preview.SetColLabelValue(col, str(previewData[0][col]))
+                    except:
+                        self.preview.SetColLabelValue(col, "")
                 # self.preview.AutoSizeColumns(True) # size columns to headers
             else:
                 self.preview.SetColLabelSize(0)
 
             for row in range(hasHeaders, rows):
                 for col in range(cols):
-                    try:	self.preview.SetCellValue(row - hasHeaders, col, str(previewData[row][col]))
-                    except: pass
+                    try:
+                        self.preview.SetCellValue(
+                            row - hasHeaders, col, str(previewData[row][col])
+                        )
+                    except:
+                        pass
 
             # if not hasHeaders:
-            self.preview.AutoSizeColumns(True) # size columns to data
+            self.preview.AutoSizeColumns(True)  # size columns to data
 
             rowheight = self.preview.GetRowSize(0)
             self.preview.SetRowSize(0, rowheight)
             self.preview.EndBatch()
-            if wx.Platform != '__wx.GTK__':
+            if wx.Platform != "__wx.GTK__":
                 wx.EndBusyCursor()
 
             self.delimiters = delimiter
             self.textQualifier = textQualifier
             self.hasHeaders = hasHeaders
 
-            try:	event.Skip()
-            except:	pass
+            try:
+                event.Skip()
+            except:
+                pass
 
-        def OnCustomDelim(self, event = None):
-            self.delimChecks['Other'].SetValue(len(self.otherDelim.GetValue()))
+        def OnCustomDelim(self, event=None):
+            self.delimChecks["Other"].SetValue(len(self.otherDelim.GetValue()))
             self.Validate()
 
         def GetDelimiters(self):
@@ -923,7 +1097,9 @@ if wx is not None:
         def BuildPreviewFields(self):
             ## Added by Daven Quinn, Aug. 2011
             self.preview_fields = grid.Grid(self, -1)
-            self.preview_fields.SetDefaultRowSize(self.preview_fields.GetCharHeight() + 8, True)
+            self.preview_fields.SetDefaultRowSize(
+                self.preview_fields.GetCharHeight() + 8, True
+            )
             self.preview_fields.SetColLabelSize(0)
             self.preview_fields.SetRowLabelSize(0)
             self.preview_fields.SetMargins(1, 0)
@@ -932,8 +1108,10 @@ if wx is not None:
 
             FieldChoiceEditor = wx.grid.GridCellChoiceEditor(self.field_choices)
             for field in range(fds):
-                if field > 3: st = self.field_choices[-1]
-                else: st = self.field_choices[field]
+                if field > 3:
+                    st = self.field_choices[-1]
+                else:
+                    st = self.field_choices[field]
                 self.preview_fields.SetCellValue(0, field, st)
                 self.preview_fields.SetCellEditor(0, field, FieldChoiceEditor)
                 w = self.preview.GetColSize(field)
@@ -976,24 +1154,49 @@ if wx is not None:
             the bad row (see importDSV() above).
         """
 
-        def __init__(self, parent, id, title, file,
-                     pos = wx.DefaultPosition, size = wx.DefaultSize,
-                     style = wx.DEFAULT_DIALOG_STYLE, name = "ImportWizardDialog", field_choices=None, meta_fields = None):
+        def __init__(
+            self,
+            parent,
+            id,
+            title,
+            file,
+            pos=wx.DefaultPosition,
+            size=wx.DefaultSize,
+            style=wx.DEFAULT_DIALOG_STYLE,
+            name="ImportWizardDialog",
+            field_choices=None,
+            meta_fields=None,
+        ):
             wx.Dialog.__init__(self, parent, id, title, pos, size, style, name)
             self.SetAutoLayout(True)
 
             self.file = file
-            f = open(file, 'r')
+            f = open(file, "r")
             self.data = f.read()
             f.close()
 
             sizer = wx.BoxSizer(wx.VERTICAL)
-            self.delimPanel = ImportWizardPanel_Delimiters(self, -1, file, self.data, self.ValidState, field_choices=field_choices, meta_fields=meta_fields)
+            self.delimPanel = ImportWizardPanel_Delimiters(
+                self,
+                -1,
+                file,
+                self.data,
+                self.ValidState,
+                field_choices=field_choices,
+                meta_fields=meta_fields,
+            )
             buttonBox = self.ButtonBox()
-            sizer.AddMany([
-                (self.delimPanel, 0, wx.ALL, 5),
-                (buttonBox, 0, wx.SOUTH | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_TOP, 0),
-                ])
+            sizer.AddMany(
+                [
+                    (self.delimPanel, 0, wx.ALL, 5),
+                    (
+                        buttonBox,
+                        0,
+                        wx.SOUTH | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_TOP,
+                        0,
+                    ),
+                ]
+            )
 
             self.SetSizer(sizer)
             self.Layout()
@@ -1008,33 +1211,42 @@ if wx is not None:
             panel.SetSizer(sizer)
             self.ok = wx.Button(panel, wx.ID_OK, "Ok")
             cancel = wx.Button(panel, wx.ID_CANCEL, "Cancel")
-            sizer.AddMany([
-                (self.ok, 0, wx.ALIGN_TOP | wx.EAST | wx.SOUTH, 10),
-                (cancel, 0, wx.ALIGN_TOP | wx.WEST | wx.SOUTH, 10),
-                ])
+            sizer.AddMany(
+                [
+                    (self.ok, 0, wx.ALIGN_TOP | wx.EAST | wx.SOUTH, 10),
+                    (cancel, 0, wx.ALIGN_TOP | wx.WEST | wx.SOUTH, 10),
+                ]
+            )
             panel.Layout()
             panel.Fit()
             return panel
 
         def GetImportInfo(self):
-            return (self.delimPanel.GetDelimiters(),
-                    self.delimPanel.GetTextQualifier(),
-                    self.delimPanel.GetHasHeaders())
+            return (
+                self.delimPanel.GetDelimiters(),
+                self.delimPanel.GetTextQualifier(),
+                self.delimPanel.GetHasHeaders(),
+            )
 
-        def ImportData(self, errorHandler = skipRow):
+        def ImportData(self, errorHandler=skipRow):
             delimiters, qualifier, hasHeaders = self.GetImportInfo()
-            self.data = organizeIntoLines(self.data, textQualifier = qualifier)
-            dlg = wx.ProgressDialog("Import DSV File",
-                                   self.file,
-                                   100,
-                                   self,
-                                   wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
-            self.data = importDSV(self.data,
-                                  delimiter = delimiters,
-                                  textQualifier = qualifier,
-                                  updateFunction = dlg.Update,
-                                  errorHandler = errorHandler)
-            if self.data is None: return None
+            self.data = organizeIntoLines(self.data, textQualifier=qualifier)
+            dlg = wx.ProgressDialog(
+                "Import DSV File",
+                self.file,
+                100,
+                self,
+                wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE,
+            )
+            self.data = importDSV(
+                self.data,
+                delimiter=delimiters,
+                textQualifier=qualifier,
+                updateFunction=dlg.Update,
+                errorHandler=errorHandler,
+            )
+            if self.data is None:
+                return None
             if hasHeaders:
                 headers = copy.copy(self.data[0])
                 del self.data[0]
@@ -1042,17 +1254,18 @@ if wx is not None:
                 headers = None
 
             import numpy as N
+
             self.data = N.array(self.data)
 
-# 			
-# 			if self.delimPanel.field_choices != None:
-# 				fields = self.delimPanel.GetPreviewFields()
-# 				st = ""
-# 				for name in fields:
-# 					st += name+", "
-# 				st = st[0:-2]
-# 				
-# 				self.data = N.core.records.fromarrays(self.data, names=st.encode())
+            #
+            # 			if self.delimPanel.field_choices != None:
+            # 				fields = self.delimPanel.GetPreviewFields()
+            # 				st = ""
+            # 				for name in fields:
+            # 					st += name+", "
+            # 				st = st[0:-2]
+            #
+            # 				self.data = N.core.records.fromarrays(self.data, names=st.encode())
 
             self.metadata = None
 
@@ -1063,53 +1276,74 @@ if wx is not None:
 
 
 # ------------------------------------------------------------------------------
-if __name__ == '__main__':
+if __name__ == "__main__":
     if wx is None:
-        print "\nYou need wxPython to run this sample*."
-        print "\n*Note that wxPython is _not_ necessary to use this module, but it is required"
-        print "to use the wizard dialog (which the sample requires)."
+        print("\nYou need wxPython to run this sample*.")
+        print(
+            "\n*Note that wxPython is _not_ necessary to use this module, but it is required"
+        )
+        print("to use the wizard dialog (which the sample requires).")
         raise SystemExit
-
 
     def demo():
         class SampleApp(wx.App):
             def OnInit(self):
-                dlg = wx.FileDialog(None, "Choose a file", ".", "",
-                                   "CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*",
-                                   wx.OPEN)
+                dlg = wx.FileDialog(
+                    None,
+                    "Choose a file",
+                    ".",
+                    "",
+                    "CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*",
+                    wx.FD_OPEN,
+                )
                 if dlg.ShowModal() == wx.ID_OK:
                     path = dlg.GetPath()
                     dlg.Destroy()
 
-                    errorLog = open('import_error.log', 'a+')
-                    def logErrors(linenumber, oldrow, newrow, expectedColumns, maxColumns, file = errorLog):
+                    errorLog = open("import_error.log", "a+")
+
+                    def logErrors(
+                        linenumber,
+                        oldrow,
+                        newrow,
+                        expectedColumns,
+                        maxColumns,
+                        file=errorLog,
+                    ):
                         # log the bad row to a file
                         file.write("LINE %d: %s\n" % (linenumber, oldrow))
 
-                    dlg = ImportWizardDialog(None, -1, 'CSV Import Wizard (v.%s)' % __version__, path, field_choices=['Distance', 'Latitude', 'Longitude'])
+                    dlg = ImportWizardDialog(
+                        None,
+                        -1,
+                        "CSV Import Wizard (v.%s)" % __version__,
+                        path,
+                        field_choices=["Distance", "Latitude", "Longitude"],
+                    )
                     if dlg.ShowModal() == wx.ID_OK:
-                        results = dlg.ImportData(errorHandler = logErrors)
+                        results = dlg.ImportData(errorHandler=logErrors)
                         dlg.Destroy()
                         errorLog.close()
 
                         if results is not None:
                             headers, data = results
-#							 if 0: # print the output to stdout
+                            # if 0: # print the output to stdout
                             if headers:
-                                print headers
-                                print 80*'='
+                                print(headers)
+                                print(80 * "=")
                             for row in data:
-                                print row
+                                print(row)
 
                             import numpy as N
-                            a = N.array(data)
-                            print a[:,0]
 
-                            if 0: # for testing export functionality
+                            a = N.array(data)
+                            print(a[:, 0])
+
+                            if 0:  # for testing export functionality
                                 if headers:
-                                    print exportDSV([headers] + data)
+                                    print(exportDSV([headers] + data))
                                 else:
-                                    print exportDSV(data)
+                                    print(exportDSV(data))
                     else:
                         dlg.Destroy()
 

@@ -1,7 +1,7 @@
 import matplotlib as M
 import logging as log
 
-minmax_opts = dict(alpha=0.4, facecolor='#87b4f8')
+minmax_opts = dict(alpha=0.4, facecolor="#87b4f8")
 
 
 class AxesBase(M.axes.Axes):
@@ -20,22 +20,24 @@ class AxesBase(M.axes.Axes):
 
         obj = getattr(self.gridspec, orientation)
 
-        if visible: obj.show(index)
-        else: obj.hide(index)
+        if visible:
+            obj.show(index)
+        else:
+            obj.hide(index)
         self.gridspec.set_ratios()
 
-        M.axes.Axes.set_visible(self,visible)
+        M.axes.Axes.set_visible(self, visible)
         self.figure.subplots_adjust()
         self.canvas.draw()
 
 
-from cable import *
-from colorbar import *
-from info import *
-from main import *
-from time import *
+from .cable import *
+from .colorbar import *
+from .info import *
+from .main import *
+from .time import *
 
 
 from matplotlib.projections import register_projection
-[register_projection(i) for i in [TimePlot, CablePlot, MainPlot, ColorBar, InfoPanel]]
 
+[register_projection(i) for i in [TimePlot, CablePlot, MainPlot, ColorBar, InfoPanel]]

@@ -5,7 +5,7 @@ def import_geodata(parent=None):
 	
 	dlg = wx.FileDialog(parent, "Choose a file with geospatial coordinates", ".", "",
 						"CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*",
-						wx.OPEN)
+						wx.FD_OPEN)
 	if dlg.ShowModal() == wx.ID_OK:
 		path = dlg.GetPath()
 		dlg.Destroy()
@@ -25,7 +25,7 @@ def import_geodata(parent=None):
 				
 				f = lambda x: dlg.data[:,fields[x]].astype('float')
 				
- 				data = N.vstack((f('Distance'), f('Latitude'), f('Longitude')))
+				data = N.vstack((f('Distance'), f('Latitude'), f('Longitude')))
 
  				
 			dlg.Destroy()

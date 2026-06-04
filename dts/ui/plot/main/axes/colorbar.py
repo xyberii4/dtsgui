@@ -14,9 +14,9 @@ class ColorBar(AxesBase):
 		self.set_ylabel(u'Temperature (\u00b0C)')
 		self.yaxis.set_label_position('left')
 
- 		for tick in self.yaxis.iter_ticks():
- 			tick[0].label2On = False
- 			tick[0].label1On = True
+		for tick in self.yaxis.get_major_ticks():
+			tick.label2On = False
+			tick.label1On = True
 
 
 	def set_visible(self, visible=True):

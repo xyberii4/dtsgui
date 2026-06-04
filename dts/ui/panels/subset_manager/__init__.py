@@ -19,7 +19,7 @@ class SubsetManager(dts.ui.panels.NotebookChildPanel):
         self.plot = SubsetGraphPanel(self, self.controls.get_subset())
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.controls, 0, wx.EXPAND | wx.ALL)
-        main_sizer.Add(self.plot, 1, wx.EXPAND |wx.ALL)
+        main_sizer.Add(self.plot, 1, wx.EXPAND | wx.ALL)
         self.SetSizer(main_sizer)
 
     def Destroy(self, *args, **kwargs):
@@ -39,28 +39,49 @@ class SubsetManagerControls(dts.ui.panels.NotebookChildPanel):
         sizer.SetFlexibleDirection(wx.BOTH)
         sizer.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-        self.subset_selector = Fieldset(self, "Select subset", control=SubsetsListCtrl(self, size=(150, -1)))
-        sizer.Add(self.subset_selector, wx.GBPosition(0, 0), wx.GBSpan(1, 1), wx.EXPAND | wx.ALL, 5)
+        self.subset_selector = Fieldset(
+            self, "Select subset", control=SubsetsListCtrl(self, size=(150, -1))
+        )
+        sizer.Add(
+            self.subset_selector,
+            wx.GBPosition(0, 0),
+            wx.GBSpan(1, 1),
+            wx.EXPAND | wx.ALL,
+            5,
+        )
 
-        self.buttons = {'add_subset': wx.Button(self, wx.ID_ANY, u"Add Subset \u00BB")}
-        sizer.Add(self.buttons["add_subset"], wx.GBPosition(1, 0), wx.GBSpan(1, 1), wx.ALIGN_RIGHT | wx.ALL, 5)
+        self.buttons = {"add_subset": wx.Button(self, wx.ID_ANY, "Add Subset \u00bb")}
+        sizer.Add(
+            self.buttons["add_subset"],
+            wx.GBPosition(1, 0),
+            wx.GBSpan(1, 1),
+            wx.ALIGN_RIGHT | wx.ALL,
+            5,
+        )
 
         self.description_panel = DescriptionPanel(self, self.get_subset())
-        sizer.Add(self.description_panel, wx.GBPosition(0, 1), wx.GBSpan(2, 1),
-                  wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, 5)
+        sizer.Add(
+            self.description_panel,
+            wx.GBPosition(0, 1),
+            wx.GBSpan(2, 1),
+            wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM,
+            5,
+        )
 
         bSizer7 = wx.BoxSizer(wx.VERTICAL)
 
-        self.buttons["view_subset"] = wx.Button(self, wx.ID_ANY, u"View Subset")
+        self.buttons["view_subset"] = wx.Button(self, wx.ID_ANY, "View Subset")
         bSizer7.Add(self.buttons["view_subset"], 0, wx.EXPAND | wx.TOP, 5)
 
-        self.buttons["edit_subset"] = wx.Button(self, wx.ID_ANY, u"Edit Subset")
+        self.buttons["edit_subset"] = wx.Button(self, wx.ID_ANY, "Edit Subset")
         bSizer7.Add(self.buttons["edit_subset"], 0, wx.EXPAND | wx.TOP, 5)
 
-        self.buttons["delete_subset"] = wx.Button(self, wx.ID_ANY, u"Delete Subset")
+        self.buttons["delete_subset"] = wx.Button(self, wx.ID_ANY, "Delete Subset")
         bSizer7.Add(self.buttons["delete_subset"], 0, wx.EXPAND | wx.TOP, 5)
 
-        sizer.Add(bSizer7, wx.GBPosition(0, 2), wx.GBSpan(2, 1), wx.ALIGN_RIGHT | wx.ALL, 5)
+        sizer.Add(
+            bSizer7, wx.GBPosition(0, 2), wx.GBSpan(2, 1), wx.ALIGN_RIGHT | wx.ALL, 5
+        )
 
         sizer.AddGrowableCol(1)
 
@@ -73,7 +94,7 @@ class SubsetManagerControls(dts.ui.panels.NotebookChildPanel):
 
     def get_subset(self):
         try:
-            return self.subset_selector['control'].get_selection()
+            return self.subset_selector["control"].get_selection()
         except:
             return None
 
@@ -98,18 +119,22 @@ class SubsetManagerControls(dts.ui.panels.NotebookChildPanel):
         subsets = subset.get_channel().subsets
         key = subset.get_key()
         subset = subsets[key]
-        dlg = wx.MessageDialog(self,
-                               "Are you sure you want to delete the subset with name '{}'?".format(subset.get_title()),
-                               'Delete subset',
-                               wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self,
+            "Are you sure you want to delete the subset with name '{}'?".format(
+                subset.get_title()
+            ),
+            "Delete subset",
+            wx.YES_NO | wx.ICON_QUESTION,
+        )
         toDo = dlg.ShowModal()
         dlg.Destroy()
         if toDo == wx.ID_YES:
-            del(subsets[key])
-            del(subsets.__hdf__[key])
+            del subsets[key]
+            del subsets.__hdf__[key]
             event = evt.SubsetDeletedEvent(wx.ID_ANY, key=key, subset=subset)
             wx.PostEvent(self, event)
-            print self.GetTopLevelParent().status.current_channel.subsets
+            print(self.GetTopLevelParent().status.current_channel.subsets)
 
     def on_new_subset(self, event):
         self.GetParentNotebook().add_subset_editor()
@@ -121,20 +146,21 @@ class SubsetManagerControls(dts.ui.panels.NotebookChildPanel):
 
 class DescriptionPanel(CPL_WebControl):
     default = "---"
-    vars = dict(bkg_color="#dddddd",
-                name="No subset selected.",
-                description=None,
-                x_min=None,
-                x_max=None,
-                x_delta=None,
-                t_min=None,
-                t_max=None,
-                t_delta=None,
-                min=None,
-                max=None,
-                mean=None,
-                std=None
-                )
+    vars = dict(
+        bkg_color="#dddddd",
+        name="No subset selected.",
+        description=None,
+        x_min=None,
+        x_max=None,
+        x_delta=None,
+        t_min=None,
+        t_max=None,
+        t_delta=None,
+        min=None,
+        max=None,
+        mean=None,
+        std=None,
+    )
     selected = None
 
     def __init__(self, parent, subset=None):
@@ -154,13 +180,14 @@ class DescriptionPanel(CPL_WebControl):
         if vars is None:
             vars = self.vars
 
-        import attributes_panel as a
+        from . import attributes_panel as a
+
         tpl = a.attributes % vars
         self.LoadSource(tpl)
 
     def define_background_color(self):
         bkg_color = self.Parent.GetBackgroundColour().Get()
-        return '#%02x%02x%02x' % bkg_color
+        return "#%02x%02x%02x" % bkg_color
 
     def on_subset_edited(self, event):
         if self.selected is event.subset:
@@ -179,8 +206,8 @@ class DescriptionPanel(CPL_WebControl):
 
     def display_info(self, subset):
         self.selected = subset
-        self.vars['name'] = subset.get_title()
-        self.vars['description'] = subset.get_description()
+        self.vars["name"] = subset.get_title()
+        self.vars["description"] = subset.get_description()
 
         x_min, x_max = subset.get_distance_interval()
         x_delta = x_max - x_min
@@ -189,16 +216,16 @@ class DescriptionPanel(CPL_WebControl):
 
         times = subset.get_time_range()
         time_format = dts.ui.time_format.get_format(linebreak=False)
-        for time, label in zip(times, ['t_min', 't_max']):
+        for time, label in zip(times, ["t_min", "t_max"]):
             date = datetime.datetime.fromtimestamp(time)
             self.vars[label] = date.strftime(time_format)
 
-        t_delta = datetime.timedelta(seconds=times[1]-times[0])
-        self.vars['t_delta'] = str(t_delta)
+        t_delta = datetime.timedelta(seconds=times[1] - times[0])
+        self.vars["t_delta"] = str(t_delta)
 
         data = subset.get_data()
 
-        for i in ['min', 'max', 'mean', 'std']:
+        for i in ["min", "max", "mean", "std"]:
             self.vars[i] = self.format_temp(getattr(data, i)())
 
         self.display_template()
@@ -207,7 +234,7 @@ class DescriptionPanel(CPL_WebControl):
         if value is None:
             return self.default
         else:
-            return u"{0:.2f} \u00b0C".format(float(value))
+            return "{0:.2f} \u00b0C".format(float(value))
 
 
 class SubsetListPanel(dts.ui.panels.NotebookChildPanel):
@@ -216,7 +243,7 @@ class SubsetListPanel(dts.ui.panels.NotebookChildPanel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.ch_change = ChannelSelectCtrl(self)
         self.subsets_list = SubsetsListCtrl(self)
-        self.add_subset_button = wx.Button(self, wx.ID_ANY, "Add New" )
+        self.add_subset_button = wx.Button(self, wx.ID_ANY, "Add New")
         self.add_subset_button.Bind(wx.EVT_BUTTON, self.on_new_subset)
 
         panels = [self.ch_change, self.subsets_list, self.add_subset_button]
@@ -242,7 +269,7 @@ class SubsetGraphPanel(PlotImage):
         window.Bind(evt.EVT_SUBSET_EDITED, self.on_subset_edited)
         window.Bind(evt.EVT_SUBSET_DELETED, self.on_subset_deleted)
         window.Bind(evt.EVT_SUBSET_SELECTED, self.on_subset_selected)
-        self.canvas.mpl_connect('pick_event', self.on_pick)
+        self.canvas.mpl_connect("pick_event", self.on_pick)
 
         if subset is not None:
             self.fill_rectangle(subset)
@@ -261,7 +288,7 @@ class SubsetGraphPanel(PlotImage):
         rect.key = key
         # This code could be changed to adjust size of rectangle instead of removing and recreating.
         if key in self.rectangles:
-            self.ax.patches.remove(self.rectangles[key])
+            self.rectangles[key].remove()
         self.rectangles[key] = self.ax.add_patch(rect)
         # self.rectangles[key]
 
@@ -285,7 +312,7 @@ class SubsetGraphPanel(PlotImage):
 
             subset = self.channel.subsets[key]
 
-            log.info("Subset "+key+" selected.")
+            log.info("Subset " + key + " selected.")
 
             event = dts.ui.evt.SubsetSelectedEvent(wx.ID_ANY, new=False, subset=subset)
             wx.PostEvent(self, event)
@@ -299,8 +326,8 @@ class SubsetGraphPanel(PlotImage):
         key = subset.get_key()
         rect = self.rectangles[key]
         if self.selected is not None:
-            self.selected.set_facecolor('none')
-        rect.set_facecolor((1.0, 1.0, 1.0, .2))
+            self.selected.set_facecolor("none")
+        rect.set_facecolor((1.0, 1.0, 1.0, 0.2))
         self.selected = rect
         self.canvas.draw()
 
@@ -314,7 +341,7 @@ class SubsetGraphPanel(PlotImage):
             key = event.key
             # This code could be changed to adjust size of rectangle instead of removing and recreating.
             if key in self.rectangles:
-                self.ax.patches.remove(self.rectangles[key])
-            del(self.rectangles[key])
+                self.rectangles[key].remove()
+            del self.rectangles[key]
             self.canvas.draw()
         event.Skip()
