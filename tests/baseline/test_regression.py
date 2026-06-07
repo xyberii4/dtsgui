@@ -14,7 +14,7 @@ if REPO_ROOT not in sys.path:
 from dts.data import DataFile
 from dts.data.io import import_data
 
-TEST_DATA_DIR = os.path.join(REPO_ROOT, "test", "data")
+TEST_DATA_DIR = os.path.join(REPO_ROOT, "samples")
 BASELINE_DIR = os.path.join(REPO_ROOT, "tests", "baseline")
 
 DATASETS = [

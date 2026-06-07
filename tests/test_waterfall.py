@@ -8,7 +8,7 @@ if REPO_ROOT not in sys.path:
 
 from dts.data.io.therma_csv import ThermaCSVData
 
-TEST_CSV_PATH = os.path.join(REPO_ROOT, "test", "data", "DTS_J1_ThermaCSV.csv")
+TEST_CSV_PATH = os.path.join(REPO_ROOT, "samples", "DTS_J1_ThermaCSV.csv")
 
 @pytest.fixture
 def csv_data():

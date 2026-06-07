@@ -1,0 +1,42 @@
+name: Waterfall Tests
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'dts/data/io/therma_csv.py'
+      - 'dts/ui/plot/waterfall.py'
+      - 'tests/test_waterfall.py'
+      - 'samples/DTS_J1_ThermaCSV.csv'
+      - 'pixi.toml'
+      - 'pixi.lock'
+      - '.github/workflows/test-waterfall.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'dts/data/io/therma_csv.py'
+      - 'dts/ui/plot/waterfall.py'
+      - 'tests/test_waterfall.py'
+      - 'samples/DTS_J1_ThermaCSV.csv'
+      - 'pixi.toml'
+      - 'pixi.lock'
+      - '.github/workflows/test-waterfall.yml'
+  workflow_dispatch:
+
+jobs:
+  test-waterfall:
+    name: Run Waterfall Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: latest
+          cache: true
+          
+      - name: Run Waterfall Tests
+        run: pixi run test-waterfall

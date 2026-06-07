@@ -8,6 +8,8 @@ platforms = ["win-64", "osx-64", "linux-64"]
 [tasks]
 run = "python dts_app.py"
 test = "pytest tests/ -v"
+test-baseline = "pytest tests/baseline/ -v"
+test-waterfall = "pytest tests/test_waterfall.py -v"
 
 [dependencies]
 # --- Core runtime ---

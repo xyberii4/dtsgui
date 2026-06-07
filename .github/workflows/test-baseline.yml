@@ -1,24 +1,31 @@
-name: Regression Tests
+name: Baseline Tests
 
 on:
   push:
     branches: [ main, master ]
     paths:
       - 'dts/**'
-      - 'tests/**'
+      - 'tests/baseline/**'
+      - 'samples/quashnet/**'
+      - 'samples/santuit/**'
       - 'pixi.toml'
       - 'pixi.lock'
+      - '.github/workflows/test-baseline.yml'
   pull_request:
     branches: [ main, master ]
     paths:
       - 'dts/**'
-      - 'tests/**'
+      - 'tests/baseline/**'
+      - 'samples/quashnet/**'
+      - 'samples/santuit/**'
       - 'pixi.toml'
       - 'pixi.lock'
+      - '.github/workflows/test-baseline.yml'
+  workflow_dispatch:
 
 jobs:
-  test:
-    name: Run Pytest
+  test-baseline:
+    name: Run Baseline Tests
     runs-on: ubuntu-latest
     
     steps:
@@ -31,5 +38,5 @@ jobs:
           pixi-version: latest
           cache: true
           
-      - name: Run Regression Tests
-        run: pixi run test
+      - name: Run Baseline Tests
+        run: pixi run test-baseline
