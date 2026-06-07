@@ -14,7 +14,11 @@ class Notebook(aui.AuiNotebook):
     """
 
     def __init__(self, parent, id=wx.ID_ANY):
-        style = aui.AUI_NB_CLOSE_ON_ALL_TABS | aui.AUI_NB_DEFAULT_STYLE | aui.AUI_NB_NO_TAB_FOCUS
+        style = (
+            aui.AUI_NB_CLOSE_ON_ALL_TABS
+            | aui.AUI_NB_DEFAULT_STYLE
+            | aui.AUI_NB_NO_TAB_FOCUS
+        )
         aui.AuiNotebook.__init__(self, parent, id, agwStyle=style)
 
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.on_page_changed)
@@ -44,7 +48,7 @@ class Notebook(aui.AuiNotebook):
             try:
                 aui.AuiNotebook.DeletePage(self, page_idx)
             except Exception as e:
-                if e.args[0] == 'invalid notebook page':
+                if e.args[0] == "invalid notebook page":
                     pass
                 else:
                     raise e
@@ -86,11 +90,10 @@ class PlotNotebook(Notebook):
             channel = self.window.data.channels[channel_name]
             self.add_channel_editor(channel)
 
-        self.window.Bind(dts.ui.evt.EVT_CHANNEL_IMPORTED,
-                         self.on_channel_imported)
+        self.window.Bind(dts.ui.evt.EVT_CHANNEL_IMPORTED, self.on_channel_imported)
 
     def update_active_main(self, page):
-        if page.__class__.__name__ is 'MainViewer':
+        if page.__class__.__name__ is "MainViewer":
             self.active_main = page
 
     def update_pages(self):
@@ -124,38 +127,41 @@ class PlotNotebook(Notebook):
             dataset = window.status.current_channel.data
 
         from dts.ui.plot.main import MainViewer
+
         page = MainViewer(self, dataset)
         self.update_active_main(page)
         channel = dataset.get_channel()
         if channel.get_title() == dataset.get_title():
-            name = "Viewer: "+dataset.get_title()
+            name = "Viewer: " + dataset.get_title()
         else:
-            name = "Viewer: {}, {}".format(
-                channel.get_title(), dataset.get_title())
+            name = "Viewer: {}, {}".format(channel.get_title(), dataset.get_title())
 
         self.AddPage(page, name)
         return page
 
     def add_map(self):
         from dts.ui.map.static import StaticMapBase
+
         panel = StaticMapBase(self)
-        self.AddPage(panel, 'Static Map')
+        self.AddPage(panel, "Static Map")
         self.map = panel
         return panel
 
     def add_gmap(self):
         from dts.ui.map.google import GoogleMapControl
+
         gmap = GoogleMapControl(self)
         window = self.GetTopLevelParent()
         channel_title = window.data.ch.get_title()
-        self.AddPage(gmap, 'Google Maps: {}'.format(channel_title))
+        self.AddPage(gmap, "Google Maps: {}".format(channel_title))
         self.gmap = gmap
         return gmap
 
     def add_stats_gmap(self):
         from dts.ui.map.google import StatsGoogleMapControl
+
         stats_gmap = StatsGoogleMapControl(self)
-        self.AddPage(stats_gmap, 'Google Maps: Multi-channel statistics')
+        self.AddPage(stats_gmap, "Google Maps: Multi-channel statistics")
         self.stats_gmap = stats_gmap
         return stats_gmap
 
@@ -165,6 +171,7 @@ class PlotNotebook(Notebook):
         else:
             title = "Edit subset '{}'".format(subset.get_title())
         from dts.ui.panels.subset_editor import SubsetEditor
+
         log.debug("Starting subset editor.")
         page = SubsetEditor(self, subset)
         self.AddPage(page, title, True)
@@ -173,16 +180,19 @@ class PlotNotebook(Notebook):
 
     def add_data_explorer(self):
         from dts.ui.panels.ds_explorer import DataExplore
+
         page = DataExplore(self)
         self.AddPage(page, "Dataset Explorer")
         return page
 
     def add_import_geodata(self):
         from dts.ui.panels.import_geodata import import_geodata
+
         import_geodata(self)
 
     def add_subset_manager(self):
         from dts.ui.panels.subset_manager import SubsetManager
+
         log.debug("Starting subset manager.")
         page = SubsetManager(self)
         window = self.GetTopLevelParent()
@@ -192,21 +202,31 @@ class PlotNotebook(Notebook):
 
     def add_trim_raw(self, channel=None):
         from dts.ui.panels.trim_raw import TrimRaw
+
         page = TrimRaw(self)
         self.AddPage(page, "Trim Raw Data")
         return page
 
     def add_interval_offset(self):
         from dts.ui.panels.set_interval_offset import OffsetPanel
+
         page = OffsetPanel(self)
         self.AddPage(page, "Set interval and offset")
+
+    def add_waterfall(self, csv_path):
+        from dts.ui.plot.waterfall import WaterfallViewer
+        import os
+
+        page = WaterfallViewer(self, csv_path)
+        self.AddPage(page, "Waterfall: " + os.path.basename(csv_path))
+        return page
 
     def on_channel_imported(self, event):
 
         try:
             stats_gmap_idx = self.GetPageIndex(self.stats_gmap)
             self.DeletePage(stats_gmap_idx)
-            delattr(self, 'stats_gmap')
+            delattr(self, "stats_gmap")
         except AttributeError:
             pass
 

@@ -25,6 +25,9 @@ if __name__ == "__main__":
 
         app.frame = GraphFrame(app)
 
+        if hasattr(init, "waterfall_csv_path"):
+            app.frame.tabs.add_waterfall(init.waterfall_csv_path)
+
         app.frame.Show()
         sys.exit(app.MainLoop())
 

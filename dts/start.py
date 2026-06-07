@@ -2,7 +2,6 @@ import wx
 import dts
 from dts.data import DataFile
 import dts.ui.dialog.file_io as IO
-import os
 
 
 class InitOption:
@@ -13,21 +12,26 @@ class InitOption:
 
 
 class Initialize:
-
     choices = [
         InitOption(
-            "existing",
-            'Open an existing DTS GUI file',
-            'Choose a DTS GUI saved file'
+            "existing", "Open an existing DTS GUI file", "Choose a DTS GUI saved file"
         ),
         InitOption(
             "sensornet",
-            'Sensornet: import a directory of .dtd or .ddf files',
-            "Choose a directory containing .dtd or .ddf files."
+            "Sensornet: import a directory of .dtd or .ddf files",
+            "Choose a directory containing .dtd or .ddf files.",
         ),
-        InitOption("silixa",
-                   "Silixa: import a directory of .xml files",
-                   "Choose a directory containing .xml files.")]
+        InitOption(
+            "silixa",
+            "Silixa: import a directory of .xml files",
+            "Choose a directory containing .xml files.",
+        ),
+        InitOption(
+            "waterfall",
+            "Waterfall CSV: Open a standalone Therma CSV file",
+            "Choose a Therma CSV file",
+        ),
+    ]
 
     def __init__(self, current_datafile=None):
         if current_datafile is None:
@@ -41,15 +45,27 @@ class Initialize:
         choice = self.choices[sel]
         # print sel
 
-        if choice.action == 'existing':
+        if choice.action == "existing":
             path = IO.choose_file(choice.file_label, wildcard)
 
             if path:
                 self.data = DataFile(path, create=False)
             else:
                 raise ValueError("No DTS file selected. Exiting.")
-        else:
+        elif choice.action == "waterfall":
+            from dts.ui.dialog.file_io import open_csv_file
+            import tempfile
+            import os
 
+            path = open_csv_file("Choose a Therma CSV file")
+            if path:
+                tmp_fd, tmp_path = tempfile.mkstemp(suffix=".dts")
+                os.close(tmp_fd)
+                self.data = DataFile(tmp_path, create=True)
+                self.waterfall_csv_path = path
+            else:
+                raise ValueError("No CSV file selected. Exiting.")
+        else:
             folder_path = IO.choose_dir(choice.file_label)
 
             if not folder_path:
@@ -61,7 +77,8 @@ class Initialize:
 
             if self.initialize:
                 filename = IO.save_file(
-                    "Choose a location to save the dataset.", wildcard)  # , wildcard)
+                    "Choose a location to save the dataset.", wildcard
+                )  # , wildcard)
                 if not filename:
                     raise ValueError("Import process cancelled. Exiting.")
                 if dts.DEBUG:
@@ -69,7 +86,8 @@ class Initialize:
                 self.data = DataFile(filename, create=self.initialize)
                 try:
                     self.data.import_channel(
-                        data_set_name, folder_path, file_type=choice.action)
+                        data_set_name, folder_path, file_type=choice.action
+                    )
                 except:
                     self.data.close()
                     os.unlink(filename)
@@ -77,19 +95,24 @@ class Initialize:
             else:
                 self.data = current_datafile
                 while data_set_name in self.data.get_channels():
-                    with wx.MessageDialog(self.dialog, "Data set name {} already exists".format(data_set_name),
-                                          "Data set exists", style=wx.OK | wx.CENTER | wx.ICON_ERROR) as msg_dlg:
+                    with wx.MessageDialog(
+                        self.dialog,
+                        "Data set name {} already exists".format(data_set_name),
+                        "Data set exists",
+                        style=wx.OK | wx.CENTER | wx.ICON_ERROR,
+                    ) as msg_dlg:
                         data_set_name = self.prompt_for_data_set_name()
                         if data_set_name is None:
-                            raise ValueError(
-                                "Import process cancelled. Exiting.")
+                            raise ValueError("Import process cancelled. Exiting.")
 
                 self.data.import_channel(
-                    data_set_name, folder_path, file_type=choice.action)
+                    data_set_name, folder_path, file_type=choice.action
+                )
 
         self.dialog.Destroy()
 
         # The user exited the dialog without pressing the "OK" button
+
     def __init_options(self, initialize):
         if initialize:
             choices = self.choices
@@ -101,8 +124,12 @@ class Initialize:
         # TODO: Use a more sophisticated method to get the data set name
         # dlg_style = (wx.TextEntryDialogStyle & ~(wx.CANCEL | wx.CLOSE_BOX))
         dlg_style = wx.TextEntryDialogStyle
-        with wx.TextEntryDialog(self.dialog, "Enter a data set name:", caption="Data set name", style=dlg_style) \
-                as text_entry_dlg:
+        with wx.TextEntryDialog(
+            self.dialog,
+            "Enter a data set name:",
+            caption="Data set name",
+            style=dlg_style,
+        ) as text_entry_dlg:
             text_entry_dlg.CenterOnParent()
             text_entry_dlg.SetValue("Channel1")
             if text_entry_dlg.ShowModal() == wx.ID_OK:
@@ -115,7 +142,8 @@ class Initialize:
     def initial_choices(self, text):
 
         self.dialog = wx.SingleChoiceDialog(
-            None, text, 'Choose a data set', self.__init_options(self.initialize))
+            None, text, "Choose a data set", self.__init_options(self.initialize)
+        )
         if self.dialog.ShowModal() == wx.ID_OK:
             if self.initialize:
                 return self.dialog.GetSelection()

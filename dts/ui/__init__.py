@@ -70,12 +70,16 @@ class WindowStateManager(object):
         self.window = window
         self.dataset = window.data
         self.current_channel = None
-        self.set_current_channel(self.dataset.ch)
-        try:
-            # initially set the values to the first channel and the first subset
-            self.set_current_subset(list(self.dataset.ch.subsets.items())[0][1])
-        except IndexError:
-            log.error("No subsets found")
+        ch = getattr(self.dataset, "ch", None)
+        if ch is not None:
+            self.set_current_channel(ch)
+            try:
+                # set inital values to first channel and first subset
+                self.set_current_subset(list(ch.subsets.items())[0][1])
+            except IndexError:
+                log.error("No subsets found")
+                self.current_subset = None
+        else:
             self.current_subset = None
 
         log.info("Data initialization completed")

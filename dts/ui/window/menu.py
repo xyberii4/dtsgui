@@ -4,6 +4,7 @@ import wx
 import dts
 import dts.ui.time_format
 import logging as log
+import dts.ui
 
 
 class Menu(wx.Menu):
@@ -34,6 +35,11 @@ class FileMenu(Menu):
     def create(self):
 
         self.add("Import data", "Adds new channel data", self.on_import_data)
+        self.add(
+            "Open Waterfall CSV...",
+            "Open standalone CSV for waterfall plotting",
+            self.on_open_waterfall_csv,
+        )
 
         self.AppendSeparator()
 
@@ -50,6 +56,14 @@ class FileMenu(Menu):
 
         if wx.Platform == "__WXMSW__":
             self.add("&Exit", "Quit DTS-GUI.", self.window.on_close, id=wx.ID_EXIT)
+
+    def on_open_waterfall_csv(self, event):
+        from dts.ui.dialog.file_io import open_csv_file
+
+        path = open_csv_file("Choose a Therma CSV file")
+        if path:
+
+            dts.ui.tabset.add_waterfall(path)
 
     def on_import_data(self, event):
         try:
