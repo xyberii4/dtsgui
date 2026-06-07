@@ -7,10 +7,7 @@ platforms = ["win-64", "osx-64", "linux-64"]
 
 [tasks]
 run = "python dts_app.py"
-# NOTE: capture-baseline must be run via the Python 2.7 conda env, not pixi.
-# See tests/README.md.
-capture-baseline-SEE-README = "echo 'Run via: conda run -n DTSGUI python tests/capture_baseline.py'"
-test = "pytest tests/test_regression.py -v"
+test = "pytest tests/ -v"
 
 [dependencies]
 # --- Core runtime ---
