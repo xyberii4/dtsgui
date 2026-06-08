@@ -4,6 +4,17 @@ DTSGUI is a public-domain software tool to import, manage, parse/cull, georefere
 
 NOTE: the automated map feature using Google Maps for georeferenced data is not functional. A fix is in progress as of March 2026.
 
+## Waterfall Visualization
+
+DTSGUI features an interactive waterfall viewer for visualizing temperature as a color gradient against cable distance and time.
+
+- **Interactive Profiles:** Points on the waterfall plot to open 1D time or depth profiles in an external window. Subsequent clicks append to the existing plot.
+- **Custom Boundaries:** Set temperature limits, temporal ranges, and depth intervals.
+- **Export:** Save high-resolution figures of any visualization directly to disk.
+
+**Data Requirements:**
+The waterfall component is compatible with standard XML and DTD formats loaded into the application workspace. It additionally supports Therma CSV formats structured with timestamps along the horizontal axis and depth intervals along the vertical axis.
+
 ## Tutorial
 
 See [TUTORIAL.md](docs/TUTORIAL.md) for a quick start tutorial.

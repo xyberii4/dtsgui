@@ -213,12 +213,20 @@ class PlotNotebook(Notebook):
         page = OffsetPanel(self)
         self.AddPage(page, "Set interval and offset")
 
-    def add_waterfall(self, csv_path):
+    def add_waterfall(self, dataset_or_path=None):
         from dts.ui.plot.waterfall import WaterfallViewer
         import os
 
-        page = WaterfallViewer(self, csv_path)
-        self.AddPage(page, "Waterfall: " + os.path.basename(csv_path))
+        if dataset_or_path is None:
+            dataset_or_path = self.window.status.current_channel.data
+            name = "Waterfall: " + dataset_or_path.get_title()
+        elif isinstance(dataset_or_path, str):
+            name = "Waterfall: " + os.path.basename(dataset_or_path)
+        else:
+            name = "Waterfall: " + dataset_or_path.get_title()
+
+        page = WaterfallViewer(self, dataset_or_path)
+        self.AddPage(page, name)
         return page
 
     def on_channel_imported(self, event):
