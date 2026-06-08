@@ -15,15 +15,26 @@ class ThermaCSVData:
         """Parse Therma CSV format and return a ThermaCSVData instance."""
         with open(path, 'r', newline='', encoding='utf-8-sig') as f:
             reader = csv.reader(f)
-            # Row 1: Header (e.g. 'Depth [m]', 'Temperature [degC]')
-            next(reader)
             
-            # Row 2: Times (first column empty, then datetime strings)
-            time_row = next(reader)
+            try:
+                # Row 1: Header (e.g. 'Depth [m]', 'Temperature [degC]')
+                next(reader)
+                
+                # Row 2: Times (first column empty, then datetime strings)
+                time_row = next(reader)
+            except StopIteration:
+                raise ValueError("Invalid Therma CSV format: File is empty or missing headers.")
+                
+            if not time_row or len(time_row) < 2:
+                raise ValueError("Invalid Therma CSV format: Missing time data.")
+                
             times = []
             for t_str in time_row[1:]:
                 if t_str.strip():
-                    times.append(datetime.strptime(t_str.strip(), '%Y-%m-%d %H:%M:%S'))
+                    try:
+                        times.append(datetime.strptime(t_str.strip(), '%Y-%m-%d %H:%M:%S'))
+                    except ValueError:
+                        raise ValueError(f"Invalid date format in Therma CSV: '{t_str}'. Expected 'YYYY-MM-DD HH:MM:SS'.")
                     
             # Row 3+: Depths and temperatures
             depths = []
